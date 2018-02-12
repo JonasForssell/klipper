@@ -1,6 +1,7 @@
-# Code for handling the kinematics of linear delta robots
+# Code for handling the kinematics of tetra robots
 #
 # Copyright (C) 2016,2017  Kevin O'Connor <kevin@koconnor.net>
+# Tetra version added 2018 Jonas Forssell <jonasforssell@yahoo.se>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import math, logging
@@ -8,10 +9,10 @@ import stepper, homing
 
 StepList = (0, 1, 2)
 
-# Slow moves once the ratio of tower to XY movement exceeds SLOW_RATIO
+# Slow moves once the ratio of anchor to XY movement exceeds SLOW_RATIO
 SLOW_RATIO = 3.
 
-class DeltaKinematics:
+class TetraKinematics:
     def __init__(self, toolhead, printer, config):
         stepper_configs = [config.getsection('stepper_' + n)
                            for n in ['a', 'b', 'c']]
@@ -24,7 +25,7 @@ class DeltaKinematics:
             default_position=stepper_a.position_endstop)
         self.steppers = [stepper_a, stepper_b, stepper_c]
         self.need_motor_enable = self.need_home = True
-        self.radius = radius = config.getfloat('delta_radius', above=0.)
+        self.radius = radius = config.getfloat('tetra_radius', above=0.)
         arm_length_a = stepper_configs[0].getfloat('arm_length', above=radius)
         self.arm_lengths = arm_lengths = [
             sconfig.getfloat('arm_length', arm_length_a, above=radius)
