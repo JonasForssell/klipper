@@ -221,7 +221,8 @@ class ToolHead:
         self.move_queue.set_extruder(self.extruder)
         kintypes = {'cartesian': cartesian.CartKinematics,
                     'corexy': corexy.CoreXYKinematics,
-                    'delta': delta.DeltaKinematics}
+                    'delta': delta.DeltaKinematics
+                    'tetra': tetra.TetraKinematics}
         self.kin = config.getchoice('kinematics', kintypes)(
             self, printer, config)
     # Print time tracking
