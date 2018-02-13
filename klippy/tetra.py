@@ -76,11 +76,10 @@ class TetraKinematics:
         self.set_position([0., 0., 0.], ())
     def get_steppers(self, flags=""):
         return list(self.steppers)
-    # Modified from Delta printer in name only.
-    # Should be OK as long as anchors does not move
+    # Modified from Delta printer in that z-coordinate is also triangulated.
     def _cartesian_to_actuator(self, coord):
         return [math.sqrt(self.arm2[i] - (self.anchors[i][0] - coord[0])**2
-                          - (self.anchors[i][1] - coord[1])**2) + coord[2]
+                          - (self.anchors[i][1] - coord[1])**2 + coord[2]**2)
                 for i in StepList]
     def _actuator_to_cartesian(self, pos):
         return actuator_to_cartesian(self.anchors, self.arm2, pos)
@@ -180,9 +179,7 @@ class TetraKinematics:
         accel_d = move.accel_r * move_d
         cruise_d = move.cruise_r * move_d
         decel_d = move.decel_r * move_d
-
-        # Begin checking here
-                         
+         
         for i in StepList:
             # Calculate a virtual tower along the line of movement at
             # the point closest to this stepper's tower.
