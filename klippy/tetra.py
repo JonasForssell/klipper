@@ -31,7 +31,7 @@ class TetraKinematics:
             sconfig.getfloat('arm_length', arm_length_a, above=radius)
             for sconfig in stepper_configs]
         self.arm2 = [arm**2 for arm in arm_lengths]
-        # Calculate endstop position of nozzle using stepper position (=anchor position)
+        # Calculate z position of anchors
         self.endstops = [s.position_endstop + math.sqrt(arm2 - radius**2)
                          for s, arm2 in zip(self.steppers, self.arm2)
         self.limit_xy2 = -1.
@@ -40,7 +40,7 @@ class TetraKinematics:
         self.limit_z = min([ep - arm
                             for ep, arm in zip(self.endstops, arm_lengths)])
         logging.info(
-            "Delta max build height %.2fmm (radius tapered above %.2fmm)" % (
+            "Tetra max build height %.2fmm (radius tapered above %.2fmm)" % (
                 self.max_z, self.limit_z))
         # Setup stepper max halt velocity
         self.max_velocity, self.max_accel = toolhead.get_max_velocity()
@@ -50,15 +50,15 @@ class TetraKinematics:
         max_halt_velocity = toolhead.get_max_axis_halt()
         for s in self.steppers:
             s.set_max_jerk(max_halt_velocity, self.max_accel)
-        # Determine tower locations in cartesian space
+        # Determine anchor locations in cartesian space
         self.angles = [sconfig.getfloat('angle', angle)
                        for sconfig, angle in zip(stepper_configs,
                                                  [210., 330., 90.])]
-        self.towers = [(math.cos(math.radians(angle)) * radius,
+        self.anchors = [(math.cos(math.radians(angle)) * radius,
                         math.sin(math.radians(angle)) * radius)
                        for angle in self.angles]
         # Find the point where an XY move could result in excessive
-        # tower movement
+        # anchor movement
         half_min_step_dist = min([s.step_dist for s in self.steppers]) * .5
         min_arm_length = min(arm_lengths)
         def ratio_to_dist(ratio):
@@ -70,18 +70,20 @@ class TetraKinematics:
         self.max_xy2 = min(radius, min_arm_length - radius,
                            ratio_to_dist(4. * SLOW_RATIO) - radius)**2
         logging.info(
-            "Delta max build radius %.2fmm (moves slowed past %.2fmm and %.2fmm)"
+            "Tetra max build radius %.2fmm (moves slowed past %.2fmm and %.2fmm)"
             % (math.sqrt(self.max_xy2), math.sqrt(self.slow_xy2),
                math.sqrt(self.very_slow_xy2)))
         self.set_position([0., 0., 0.], ())
     def get_steppers(self, flags=""):
         return list(self.steppers)
+    # Modified from Delta printer in name only.
+    # Should be OK as long as anchors does not move
     def _cartesian_to_actuator(self, coord):
-        return [math.sqrt(self.arm2[i] - (self.towers[i][0] - coord[0])**2
-                          - (self.towers[i][1] - coord[1])**2) + coord[2]
+        return [math.sqrt(self.arm2[i] - (self.anchors[i][0] - coord[0])**2
+                          - (self.anchors[i][1] - coord[1])**2) + coord[2]
                 for i in StepList]
     def _actuator_to_cartesian(self, pos):
-        return actuator_to_cartesian(self.towers, self.arm2, pos)
+        return actuator_to_cartesian(self.anchors, self.arm2, pos)
     def get_position(self):
         spos = [s.mcu_stepper.get_commanded_position() for s in self.steppers]
         return self._actuator_to_cartesian(spos)
@@ -179,6 +181,8 @@ class TetraKinematics:
         cruise_d = move.cruise_r * move_d
         decel_d = move.decel_r * move_d
 
+        # Begin checking here
+                         
         for i in StepList:
             # Calculate a virtual tower along the line of movement at
             # the point closest to this stepper's tower.
