@@ -31,8 +31,9 @@ class TetraKinematics:
             sconfig.getfloat('arm_length', arm_length_a, above=radius)
             for sconfig in stepper_configs]
         self.arm2 = [arm**2 for arm in arm_lengths]
+        # Calculate endstop position of nozzle using stepper position (=anchor position)
         self.endstops = [s.position_endstop + math.sqrt(arm2 - radius**2)
-                         for s, arm2 in zip(self.steppers, self.arm2)]
+                         for s, arm2 in zip(self.steppers, self.arm2)
         self.limit_xy2 = -1.
         self.max_z = min([s.position_endstop for s in self.steppers])
         self.min_z = config.getfloat('minimum_z_position', 0, maxval=self.max_z)
