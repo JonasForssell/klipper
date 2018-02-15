@@ -21,7 +21,8 @@ class TetraKinematics:
         stepper_configs = [config.getsection('stepper_' + n)
                            for n in ['a', 'b', 'c']]
         
-        # Set default endstop position
+        # Set default endstop position, equal to the distance of the nozzle from the bed
+        # When the nozzle is in centre (0,0) position.
         stepper_a = stepper.PrinterHomingStepper(printer, stepper_configs[0])
         stepper_b = stepper.PrinterHomingStepper(
             printer, stepper_configs[1],
@@ -35,7 +36,7 @@ class TetraKinematics:
         self.need_motor_enable = self.need_home = True
         self.radius = radius = config.getfloat('tetra_radius', above=0.)
         
-        # Arm lengths
+        # Arm length (length of wire when in endstop position
         arm_length_a = stepper_configs[0].getfloat('arm_length', above=radius)
         self.arm_lengths = arm_lengths = [
             sconfig.getfloat('arm_length', arm_length_a, above=radius)
@@ -45,16 +46,20 @@ class TetraKinematics:
         # Calculate z position of anchors in cartesian coordinates
         self.endstops = [s.position_endstop + math.sqrt(arm2 - radius**2)
                          for s, arm2 in zip(self.steppers, self.arm2)
-                                                  
+        
+        # Set up building area limits (in cartesian coordinates)
         self.limit_xy2 = -1.
         self.max_z = min([s.position_endstop for s in self.steppers])
         self.min_z = config.getfloat('minimum_z_position', 0, maxval=self.max_z)
         self.limit_z = min([ep - arm
                             for ep, arm in zip(self.endstops, arm_lengths)])
+                         
+        # Logging into about printer setup
         logging.info(
             "Tetra max build height %.2fmm (radius tapered above %.2fmm)" % (
                 self.max_z, self.limit_z))
-        # Setup stepper max halt velocity
+                         
+        # Setup stepper velocities
         self.max_velocity, self.max_accel = toolhead.get_max_velocity()
         self.max_z_velocity = config.getfloat(
             'max_z_velocity', self.max_velocity,
@@ -62,13 +67,15 @@ class TetraKinematics:
         max_halt_velocity = toolhead.get_max_axis_halt()
         for s in self.steppers:
             s.set_max_jerk(max_halt_velocity, self.max_accel)
-        # Determine anchor locations in cartesian space
+                         
+        # Determine anchor xy locations in cartesian space
         self.angles = [sconfig.getfloat('angle', angle)
                        for sconfig, angle in zip(stepper_configs,
                                                  [210., 330., 90.])]
         self.anchors = [(math.cos(math.radians(angle)) * radius,
                         math.sin(math.radians(angle)) * radius)
                        for angle in self.angles]
+                         
         # Find the point where an XY move could result in excessive
         # anchor movement
         half_min_step_dist = min([s.step_dist for s in self.steppers]) * .5
@@ -81,23 +88,32 @@ class TetraKinematics:
         self.very_slow_xy2 = (ratio_to_dist(2. * SLOW_RATIO) - radius)**2
         self.max_xy2 = min(radius, min_arm_length - radius,
                            ratio_to_dist(4. * SLOW_RATIO) - radius)**2
+                         
+        # Info regarding printer speed configuration                 
         logging.info(
             "Tetra max build radius %.2fmm (moves slowed past %.2fmm and %.2fmm)"
             % (math.sqrt(self.max_xy2), math.sqrt(self.slow_xy2),
                math.sqrt(self.very_slow_xy2)))
         self.set_position([0., 0., 0.], ())
+                         
     def get_steppers(self, flags=""):
         return list(self.steppers)
-    # Modified from Delta printer in that z-coordinate is also triangulated.
+                         
+    # return length of arm as the actuator position by calculating the hypotenusa
     def _cartesian_to_actuator(self, coord):
         return [math.sqrt(self.anchors[i][0] - coord[0])**2
-                          + (self.anchors[i][1] - coord[1])**2 + (self.anchors[i][2] - coord[2]**2)
+                       + (self.anchors[i][1] - coord[1])**2 
+                       + (self.anchors[i][2] - coord[2])**2)
                 for i in StepList]
+
+    # Derive the cartesian postion using triateration (end of file)
     def _actuator_to_cartesian(self, pos):
         return actuator_to_cartesian(self.anchors, self.arm2, pos)
+                         
     def get_position(self):
         spos = [s.mcu_stepper.get_commanded_position() for s in self.steppers]
         return self._actuator_to_cartesian(spos)
+                         
     def set_position(self, newpos, homing_axes):
         pos = self._cartesian_to_actuator(newpos)
         for i in StepList:
