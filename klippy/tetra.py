@@ -31,7 +31,7 @@ class TetraKinematics:
             printer, stepper_configs[2],
             default_position=stepper_a.position_endstop)
         
-        # Radius
+        # Radius of the circle where the anchors are placed
         self.steppers = [stepper_a, stepper_b, stepper_c]
         self.need_motor_enable = self.need_home = True
         self.radius = radius = config.getfloat('tetra_radius', above=0.)
@@ -43,16 +43,18 @@ class TetraKinematics:
             for sconfig in stepper_configs]
         self.arm2 = [arm**2 for arm in arm_lengths]
        
-        # Calculate z position of anchors in cartesian coordinates
-        self.endstops = [s.position_endstop + math.sqrt(arm2 - radius**2)
-                         for s, arm2 in zip(self.steppers, self.arm2)
+        # Set endstop position of steppers in local coordinates
+        self.endstops = arm_lengths
         
         # Set up building area limits (in cartesian coordinates)
         self.limit_xy2 = -1.
         self.max_z = min([s.position_endstop for s in self.steppers])
         self.min_z = config.getfloat('minimum_z_position', 0, maxval=self.max_z)
-        self.limit_z = min([ep - arm
-                            for ep, arm in zip(self.endstops, arm_lengths)])
+        
+        # The z-coordinate when one of the arms are straight down.
+        # From this point the build cylinder must become a cone
+        self.limit_z = min([ep.position_endstop - (arm - sqrt(arm**2 - radius**2))
+                            for ep, arm in zip(self.steppers, arm_lengths)])
                          
         # Logging into about printer setup
         logging.info(
@@ -68,22 +70,26 @@ class TetraKinematics:
         for s in self.steppers:
             s.set_max_jerk(max_halt_velocity, self.max_accel)
                          
-        # Determine anchor xy locations in cartesian space
+        # Determine anchor xyz locations in cartesian space
         self.angles = [sconfig.getfloat('angle', angle)
                        for sconfig, angle in zip(stepper_configs,
                                                  [210., 330., 90.])]
+        
         self.anchors = [(math.cos(math.radians(angle)) * radius,
-                        math.sin(math.radians(angle)) * radius)
-                       for angle in self.angles]
+                        math.sin(math.radians(angle)) * radius,
+                        es.position_endstop + sqrt(arm**2 - radius**2))
+                       for angle, es, arm in zip(self.angles, self.steppers, arm_lengths)]
                          
         # Find the point where an XY move could result in excessive
-        # anchor movement
+        # stepper movement
         half_min_step_dist = min([s.step_dist for s in self.steppers]) * .5
         min_arm_length = min(arm_lengths)
+        
         def ratio_to_dist(ratio):
             return (ratio * math.sqrt(min_arm_length**2 / (ratio**2 + 1.)
                                       - half_min_step_dist**2)
                     + half_min_step_dist)
+        
         self.slow_xy2 = (ratio_to_dist(SLOW_RATIO) - radius)**2
         self.very_slow_xy2 = (ratio_to_dist(2. * SLOW_RATIO) - radius)**2
         self.max_xy2 = min(radius, min_arm_length - radius,
@@ -94,6 +100,8 @@ class TetraKinematics:
             "Tetra max build radius %.2fmm (moves slowed past %.2fmm and %.2fmm)"
             % (math.sqrt(self.max_xy2), math.sqrt(self.slow_xy2),
                math.sqrt(self.very_slow_xy2)))
+        
+        # Set start position
         self.set_position([0., 0., 0.], ())
                          
     def get_steppers(self, flags=""):
