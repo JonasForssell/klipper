@@ -99,7 +99,9 @@ class TetraKinematics:
     def get_steppers(self, flags=""):
         return list(self.steppers)
                          
-    # return length of arm as the actuator position by calculating the hypotenusa
+    # return length of the three arms as the actuator position by calculating the hypotenusa
+    # The arm length is directly related to the stepper motor position so this
+    # is the local coordinate position for the stepper
     def _cartesian_to_actuator(self, coord):
         return [math.sqrt(self.anchors[i][0] - coord[0])**2
                        + (self.anchors[i][1] - coord[1])**2 
@@ -109,40 +111,51 @@ class TetraKinematics:
     # Derive the cartesian postion using triateration (end of file)
     def _actuator_to_cartesian(self, pos):
         return actuator_to_cartesian(self.anchors, self.arm2, pos)
-                         
+    
+    # Returns the current cartesian position of the nozzle
     def get_position(self):
         spos = [s.mcu_stepper.get_commanded_position() for s in self.steppers]
         return self._actuator_to_cartesian(spos)
                          
+    # Sets the cartesian position of the nozzle
     def set_position(self, newpos, homing_axes):
         pos = self._cartesian_to_actuator(newpos)
         for i in StepList:
             self.steppers[i].set_position(pos[i])
+                         
         self.limit_xy2 = -1.
         if tuple(homing_axes) == StepList:
             self.need_home = False
+    
+    # Homes the printer                         
     def home(self, homing_state):
+                         
         # All axes are homed simultaneously
         homing_state.set_axes([0, 1, 2])
         endstops = [es for s in self.steppers for es in s.get_endstops()]
         s = self.steppers[0] # Assume homing speed same for all steppers
+                         
         # Initial homing
         homing_speed = min(s.homing_speed, self.max_z_velocity)
         homepos = [0., 0., self.max_z, None]
         coord = list(homepos)
         coord[2] = -1.5 * math.sqrt(max(self.arm2)-self.max_xy2)
         homing_state.home(coord, homepos, endstops, homing_speed)
+                         
         # Retract
         coord[2] = homepos[2] - s.homing_retract_dist
         homing_state.retract(coord, homing_speed)
+                         
         # Home again
         coord[2] -= s.homing_retract_dist
         homing_state.home(coord, homepos, endstops,
                           homing_speed/2.0, second_home=True)
+                         
         # Set final homed position
         spos = [ep + s.get_homed_offset()
                 for ep, s in zip(self.endstops, self.steppers)]
         homing_state.set_homed_position(self._actuator_to_cartesian(spos))
+                         
     def motor_off(self, print_time):
         self.limit_xy2 = -1.
         for stepper in self.steppers:
