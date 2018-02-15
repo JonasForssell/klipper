@@ -4,6 +4,10 @@
 # Tetra version added 2018 Jonas Forssell <jonasforssell@yahoo.se>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
+#
+# The stepper position is the same as the length of the arm. This means that
+# when homing, the stepper position becomes the defined arm length
+#
 import math, logging
 import stepper, homing
 
@@ -16,6 +20,8 @@ class TetraKinematics:
     def __init__(self, toolhead, printer, config):
         stepper_configs = [config.getsection('stepper_' + n)
                            for n in ['a', 'b', 'c']]
+        
+        # Set default endstop position
         stepper_a = stepper.PrinterHomingStepper(printer, stepper_configs[0])
         stepper_b = stepper.PrinterHomingStepper(
             printer, stepper_configs[1],
@@ -23,17 +29,23 @@ class TetraKinematics:
         stepper_c = stepper.PrinterHomingStepper(
             printer, stepper_configs[2],
             default_position=stepper_a.position_endstop)
+        
+        # Radius
         self.steppers = [stepper_a, stepper_b, stepper_c]
         self.need_motor_enable = self.need_home = True
         self.radius = radius = config.getfloat('tetra_radius', above=0.)
+        
+        # Arm lengths
         arm_length_a = stepper_configs[0].getfloat('arm_length', above=radius)
         self.arm_lengths = arm_lengths = [
             sconfig.getfloat('arm_length', arm_length_a, above=radius)
             for sconfig in stepper_configs]
         self.arm2 = [arm**2 for arm in arm_lengths]
-        # Calculate z position of anchors
+       
+        # Calculate z position of anchors in cartesian coordinates
         self.endstops = [s.position_endstop + math.sqrt(arm2 - radius**2)
                          for s, arm2 in zip(self.steppers, self.arm2)
+                                                  
         self.limit_xy2 = -1.
         self.max_z = min([s.position_endstop for s in self.steppers])
         self.min_z = config.getfloat('minimum_z_position', 0, maxval=self.max_z)
@@ -78,8 +90,8 @@ class TetraKinematics:
         return list(self.steppers)
     # Modified from Delta printer in that z-coordinate is also triangulated.
     def _cartesian_to_actuator(self, coord):
-        return [math.sqrt(self.arm2[i] - (self.anchors[i][0] - coord[0])**2
-                          - (self.anchors[i][1] - coord[1])**2 + coord[2]**2)
+        return [math.sqrt(self.anchors[i][0] - coord[0])**2
+                          + (self.anchors[i][1] - coord[1])**2 + (self.anchors[i][2] - coord[2]**2)
                 for i in StepList]
     def _actuator_to_cartesian(self, pos):
         return actuator_to_cartesian(self.anchors, self.arm2, pos)
