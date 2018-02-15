@@ -118,7 +118,7 @@ class TetraKinematics:
 
     # Derive the cartesian postion using triateration (end of file)
     def _actuator_to_cartesian(self, pos):
-        return actuator_to_cartesian(self.anchors, self.arm2, pos)
+        return actuator_to_cartesian(self.anchors, pos)
     
     # Returns the current cartesian position of the nozzle
     def get_position(self):
@@ -169,10 +169,12 @@ class TetraKinematics:
         for stepper in self.steppers:
             stepper.motor_enable(print_time, 0)
         self.need_motor_enable = self.need_home = True
+        
     def _check_motor_enable(self, print_time):
         for i in StepList:
             self.steppers[i].motor_enable(print_time, 1)
         self.need_motor_enable = False
+        
     def check_move(self, move):
         end_pos = move.end_pos
         xy2 = end_pos[0]**2 + end_pos[1]**2
@@ -202,6 +204,7 @@ class TetraKinematics:
             move.limit_speed(max_velocity * r, self.max_accel * r)
             limit_xy2 = -1.
         self.limit_xy2 = min(limit_xy2, self.slow_xy2)
+        
     def move(self, print_time, move):
         if self.need_motor_enable:
             self._check_motor_enable(print_time)
@@ -257,12 +260,14 @@ class TetraKinematics:
             if decel_d:
                 step_delta(move_time, decel_d, cruise_v, -accel,
                            vt_startz, vt_startxy_d, vt_arm_d, movez_r)
+                
     # Helper functions for DELTA_CALIBRATE script
     def get_stable_position(self):
         return [int((ep - s.mcu_stepper.get_commanded_position())
                     /  s.mcu_stepper.get_step_dist() + .5)
                 * s.mcu_stepper.get_step_dist()
                 for ep, s in zip(self.endstops, self.steppers)]
+    
     def get_calibrate_params(self):
         return {
             'endstop_a': self.steppers[0].position_endstop,
@@ -298,14 +303,10 @@ def matrix_sub(m1, m2):
 def matrix_mul(m1, s):
     return [m1[0]*s, m1[1]*s, m1[2]*s]
 
-def actuator_to_cartesian(towers, arm2, pos):
+def actuator_to_cartesian(anchors, pos):
     # Find nozzle position using trilateration (see wikipedia)
-    carriage1 = list(towers[0]) + [pos[0]]
-    carriage2 = list(towers[1]) + [pos[1]]
-    carriage3 = list(towers[2]) + [pos[2]]
-
-    s21 = matrix_sub(carriage2, carriage1)
-    s31 = matrix_sub(carriage3, carriage1)
+    s21 = matrix_sub(anchors[1], anchors[0])
+    s31 = matrix_sub(anchors[2], anchors[0])
 
     d = math.sqrt(matrix_magsq(s21))
     ex = matrix_mul(s21, 1. / d)
@@ -315,23 +316,12 @@ def actuator_to_cartesian(towers, arm2, pos):
     ez = matrix_cross(ex, ey)
     j = matrix_dot(ey, s31)
 
-    x = (arm2[0] - arm2[1] + d**2) / (2. * d)
-    y = (arm2[0] - arm2[2] - x**2 + (x-i)**2 + j**2) / (2. * j)
-    z = -math.sqrt(arm2[0] - x**2 - y**2)
+    x = (pos[0]**2 - pos[1]**2 + d**2) / (2. * d)
+    y = (pos[0]**2 - pos[2]**2 - x**2 + (x-i)**2 + j**2) / (2. * j)
+    z = -math.sqrt(pos[0]**2 - x**2 - y**2)
 
     ex_x = matrix_mul(ex, x)
     ey_y = matrix_mul(ey, y)
     ez_z = matrix_mul(ez, z)
     return matrix_add(carriage1, matrix_add(ex_x, matrix_add(ey_y, ez_z)))
 
-def get_position_from_stable(spos, params):
-    angles = [params['angle_a'], params['angle_b'], params['angle_c']]
-    radius = params['radius']
-    radius2 = radius**2
-    towers = [(math.cos(angle) * radius, math.sin(angle) * radius)
-              for angle in map(math.radians, angles)]
-    arm2 = [a**2 for a in [params['arm_a'], params['arm_b'], params['arm_c']]]
-    endstops = [params['endstop_a'], params['endstop_b'], params['endstop_c']]
-    pos = [es + math.sqrt(a2 - radius2) - p
-           for es, a2, p in zip(endstops, arm2, spos)]
-    return actuator_to_cartesian(towers, arm2, pos)
