@@ -217,10 +217,11 @@ class TetraKinematics:
         
     def move(self, print_time, move):
         # Useful appendices from move class
-        # _d distance
-        # _r ratio (from 0 to 1)
-        # _v velocity
-        # _t time
+        # _d distance (in mm)
+        # _r ratio (scalar between 0.0 and 1.0)
+        # _v velocity (in mm/second)
+        # _v2 is velocity squared (mm^2/s^2)
+        # _t time (in seconds)
         
         if self.need_motor_enable:
             self._check_motor_enable(print_time)
