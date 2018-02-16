@@ -216,12 +216,23 @@ class TetraKinematics:
         self.limit_xy2 = min(limit_xy2, self.slow_xy2)
         
     def move(self, print_time, move):
+        # Useful appendices from move class
+        # _d distance
+        # _r ratio (from 0 to 1)
+        # _v velocity
+        # _t time
+        
         if self.need_motor_enable:
             self._check_motor_enable(print_time)
+        # Distance between end and start position (x, y and z vectors)    
         axes_d = move.axes_d
+        # Total combined length of the movements in all three directions
         move_d = move.move_d
+        # xy movement ratio (from 0 to 1)
         movexy_r = 1.
+        # z move ratio
         movez_r = 0.
+        # Inverse of combined length
         inv_movexy_d = 1. / move_d
         
         if not axes_d[0] and not axes_d[1]:
