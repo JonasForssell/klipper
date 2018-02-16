@@ -223,10 +223,12 @@ class TetraKinematics:
         movexy_r = 1.
         movez_r = 0.
         inv_movexy_d = 1. / move_d
+        
         if not axes_d[0] and not axes_d[1]:
             # Z only move
             movez_r = axes_d[2] * inv_movexy_d
             movexy_r = inv_movexy_d = 0.
+            
         elif axes_d[2]:
             # XY+Z move
             movexy_d = math.sqrt(axes_d[0]**2 + axes_d[1]**2)
