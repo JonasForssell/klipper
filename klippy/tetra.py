@@ -87,8 +87,7 @@ class TetraKinematics:
         
         def ratio_to_dist(ratio):
             return (ratio * math.sqrt(min_arm_length**2 / (ratio**2 + 1.)
-                                      - half_min_step_dist**2)
-                    + half_min_step_dist)
+                    - half_min_step_dist**2) + half_min_step_dist)
         
         self.slow_xy2 = (ratio_to_dist(SLOW_RATIO) - radius)**2
         self.very_slow_xy2 = (ratio_to_dist(2. * SLOW_RATIO) - radius)**2
@@ -178,22 +177,32 @@ class TetraKinematics:
     def check_move(self, move):
         end_pos = move.end_pos
         xy2 = end_pos[0]**2 + end_pos[1]**2
+        
         if xy2 <= self.limit_xy2 and not move.axes_d[2]:
             # Normal XY move
             return
+        
         if self.need_home:
             raise homing.EndstopMoveError(end_pos, "Must home first")
+            
         limit_xy2 = self.max_xy2
+        
+        # Limit movement to a cone when above limit_z
         if end_pos[2] > self.limit_z:
             limit_xy2 = min(limit_xy2, (self.max_z - end_pos[2])**2)
+        
+        # Outside operating volume -> throw error
         if xy2 > limit_xy2 or end_pos[2] < self.min_z or end_pos[2] > self.max_z:
             raise homing.EndstopMoveError(end_pos)
+            
         if move.axes_d[2]:
             move.limit_speed(self.max_z_velocity, move.accel)
             limit_xy2 = -1.
+            
         # Limit the speed/accel of this move if is is at the extreme
         # end of the build envelope
         extreme_xy2 = max(xy2, move.start_pos[0]**2 + move.start_pos[1]**2)
+        
         if extreme_xy2 > self.slow_xy2:
             r = 0.5
             if extreme_xy2 > self.very_slow_xy2:
@@ -203,6 +212,7 @@ class TetraKinematics:
                 max_velocity = self.max_z_velocity
             move.limit_speed(max_velocity * r, self.max_accel * r)
             limit_xy2 = -1.
+            
         self.limit_xy2 = min(limit_xy2, self.slow_xy2)
         
     def move(self, print_time, move):
