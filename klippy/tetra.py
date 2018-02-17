@@ -110,9 +110,9 @@ class TetraKinematics:
     # The arm length is directly related to the stepper motor position so this
     # is the local coordinate position for the stepper
     def _cartesian_to_actuator(self, coord):
-        return [math.sqrt(self.anchors[i][0] - coord[0])**2
-                       + (self.anchors[i][1] - coord[1])**2 
-                       + (self.anchors[i][2] - coord[2])**2)
+        return [math.sqrt((self.anchors[i][0] - coord[0])**2
+                        + (self.anchors[i][1] - coord[1])**2 
+                        + (self.anchors[i][2] - coord[2])**2)
                 for i in StepList]
 
     # Derive the cartesian postion using triateration (end of file)
