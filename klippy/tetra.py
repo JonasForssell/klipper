@@ -268,12 +268,16 @@ class TetraKinematics:
             # Reset move time
             move_time = print_time
             # Reset move position
-            step_pos = anchors_start[i]
+            current_pos = move.start_pos
+            # And stepper position
+            current_anchor_pos = _cartesian_to_actuator(move.start_pos)
+            
             
             if accel_d:
-                while #Still within the accel_d distance 
+                while current_d < accel_d   #Still within the accel_d distance 
                 
                     # Take one step with the stepper
+                    current_anchor_pos[i] += stepper[i].step_dist * (
                 
                     # Determine the position on the line of movement
                 
