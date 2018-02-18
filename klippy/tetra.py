@@ -236,42 +236,53 @@ class TetraKinematics:
         # Inverse of combined length
         inv_movexy_d = 1. / move_d
         
-        if not axes_d[0] and not axes_d[1]:
-            # Z only move
-            movez_r = axes_d[2] * inv_movexy_d
-            movexy_r = inv_movexy_d = 0.
-            
-        elif axes_d[2]:
-            # XY+Z move
-            movexy_d = math.sqrt(axes_d[0]**2 + axes_d[1]**2)
-            movexy_r = movexy_d * inv_movexy_d
-            movez_r = axes_d[2] * inv_movexy_d
-            inv_movexy_d = 1. / movexy_d
-
-        origx, origy, origz = move.start_pos[:3]
-
+        # Starting position (in local coordinate system)
+        anchors_start = _cartesian_to_actuator(move.start_pos)
+        # Ending position 
+        anchors_end = _cartesian_to_actuator(move.end_pos)
+        # Determine the length difference at each actuator
+        anchor_movement = matrix_sub(anchors_end,anchors_start)
+        # Determine how many steps are required to cover this distance
+        # Here we assume the three anchors have the same configuration
+        anchor_steps = matrix_mul(anchors_movement,1/stepper[0].step_dist)
+        
+        # Determine how long part of this is acceleration, cruise and deceleration
+        #
+        #
+        #       ______cruise_d____
+        #      /                  \
+        #     /                    \
+        #    /                      \
+        #  accel_d              decel_d
+        #
         accel = move.accel
         cruise_v = move.cruise_v
         accel_d = move.accel_r * move_d
         cruise_d = move.cruise_r * move_d
         decel_d = move.decel_r * move_d
-         
+        
+        # Now, go though each anchor and add required step times in order.
         for i in StepList:
-            # Calculate a virtual tower along the line of movement at
-            # the point closest to this stepper's tower.
-            towerx_d = self.towers[i][0] - origx
-            towery_d = self.towers[i][1] - origy
-            vt_startxy_d = (towerx_d*axes_d[0] + towery_d*axes_d[1])*inv_movexy_d
-            tangentxy_d2 = towerx_d**2 + towery_d**2 - vt_startxy_d**2
-            vt_arm_d = math.sqrt(self.arm2[i] - tangentxy_d2)
-            vt_startz = origz
-
-            # Generate steps
-            step_delta = self.steppers[i].step_delta
+            # Set up the step method
+            step = self.steppers[i].step
+            # Reset move time
             move_time = print_time
+            # Reset move position
+            step_pos = anchors_start[i]
+            
             if accel_d:
-                step_delta(move_time, accel_d, move.start_v, accel,
-                           vt_startz, vt_startxy_d, vt_arm_d, movez_r)
+                while #Still within the accel_d distance 
+                
+                    # Take one step with the stepper
+                
+                    # Determine the position on the line of movement
+                
+                    # Determine the suitable time for this should happen
+                
+                    # Que this time
+                    step(move_time)
+                
+                # Loop is complete. 
                 vt_startz += accel_d * movez_r
                 vt_startxy_d -= accel_d * movexy_r
                 move_time += move.accel_t
@@ -285,6 +296,19 @@ class TetraKinematics:
                 step_delta(move_time, decel_d, cruise_v, -accel,
                            vt_startz, vt_startxy_d, vt_arm_d, movez_r)
   
+# Generic approach
+# Calculate the line of movement for the effector by using start and endpoints from the move object
+# For each stepper (anchor) do:
+# ..Calculate how many steps the line length is for the stepper (total stepper movement / step_dist)
+# ..For each step on the stepper
+# ....Solve the position for the effector on the line of movement (using some kind of algebra)
+# ....Determine the time this position represent based on if it is
+# ......an acceleration
+# ......continuous move
+# ......or deceleration
+# ....call the stepper.step() method with the time to put this step in a que for the controller
+
+
 
 
     # Helper functions for DELTA_CALIBRATE script
