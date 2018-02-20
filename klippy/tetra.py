@@ -318,6 +318,15 @@ class TetraKinematics:
 # V is the (unit)vector of the line which the effector movement follows                       
 # Q is the new position when the effector has moved one step
 #
+#    A                    
+#    .                                  
+#    .  .  L+S                         
+#  L .    .             ....> V          
+#    .      .    .......  
+#    .     ...Q..
+#    ......                    
+#  P      M                
+#                        
 # Next, we know the following
 # L is the line length between anchor and starting point, i.e. length of vector PA
 # L+S is the line length between anchor and next point, i.e. length of vector QA 
