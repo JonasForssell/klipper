@@ -214,6 +214,19 @@ class TetraKinematics:
             limit_xy2 = -1.
             
         self.limit_xy2 = min(limit_xy2, self.slow_xy2)
+
+        
+        # Generic approach
+        # Calculate the line of movement for the effector by using start and endpoints from the move object
+        # For each stepper (anchor) do:
+        # ..Calculate how many steps the line length is for the stepper (total stepper movement / step_dist)
+        # ..For each step on the stepper
+        # ....Solve the position for the effector on the line of movement (using some kind of algebra)
+        # ....Determine the time this position represent based on if it is
+        # ......an acceleration
+        # ......continuous move
+        # ......or deceleration
+        # ....call the stepper.step() method with the time to put this step in a que for the controller        
         
     def move(self, print_time, move):
         # Useful appendices from move class
@@ -274,43 +287,19 @@ class TetraKinematics:
             
             
             if accel_d:
-                while current_d < accel_d   #Still within the accel_d distance 
-                
-                    # Take one step with the stepper
-                    current_anchor_pos[i] += stepper[i].step_dist * (
-                
-                    # Determine the position on the line of movement
-                
-                    # Determine the suitable time for this should happen
-                
-                    # Que this time
-                    step(move_time)
-                
-                # Loop is complete. 
+                step_tetra(move_time, AP_d, accel_d, accel, L, S)
                 vt_startz += accel_d * movez_r
                 vt_startxy_d -= accel_d * movexy_r
                 move_time += move.accel_t
             if cruise_d:
-                step_delta(move_time, cruise_d, cruise_v, 0.,
-                           vt_startz, vt_startxy_d, vt_arm_d, movez_r)
+                step_delta(move_time, AP_d, cruise_d, 0., L, S)
                 vt_startz += cruise_d * movez_r
                 vt_startxy_d -= cruise_d * movexy_r
                 move_time += move.cruise_t
             if decel_d:
-                step_delta(move_time, decel_d, cruise_v, -accel,
-                           vt_startz, vt_startxy_d, vt_arm_d, movez_r)
+                step_delta(move_time, AP_d, decel_d, -accel, L, S)
   
-# Generic approach
-# Calculate the line of movement for the effector by using start and endpoints from the move object
-# For each stepper (anchor) do:
-# ..Calculate how many steps the line length is for the stepper (total stepper movement / step_dist)
-# ..For each step on the stepper
-# ....Solve the position for the effector on the line of movement (using some kind of algebra)
-# ....Determine the time this position represent based on if it is
-# ......an acceleration
-# ......continuous move
-# ......or deceleration
-# ....call the stepper.step() method with the time to put this step in a que for the controller
+
 
 # Mathematical problem is
 # P is starting point
@@ -332,12 +321,12 @@ class TetraKinematics:
 # L+S is the line length between anchor and next point, i.e. length of vector QA 
 # M is the length between starting point and next point i.e. length of vector PQ
 #
-# We also know that Q should be along the line of movement so Q = P + X*V                       
+# We also know that Q should be along the line of movement so Q = P + M*V                       
 #
 # Let APx = Ax - Px and so on                        
 # If we set up the length of vector QA, and we substitue coordinates of Q with the equation above we get
 #
-# L+S = SQRT( (APx - M*Vx)^2 + (APy - M*Vy)^2 + (APz - M*Vz)^2)
+# L+S = SQRT( (APx - M*Vx)^2 + (APy - M*Vy)^2 + (APz - M*Vz)^2 )
 #
 #                        
 # Solving this equation for M gives a long expression                        
@@ -345,8 +334,27 @@ class TetraKinematics:
 # M = (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz-L^2-2*L*S-S^2 )) 
 #               + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)                       
 #
+# We now know the position of the effector for each step on the stepper
+# This can be used to calculate at what time we should take each step on the stepper.
+#
 
-
+   def step_tetra(self, move_time, AP_d, cruise_v, accel, L, S):
+        
+        while current_d < accel_d   #Still within the accel_d distance 
+                
+                    # Take one step with the stepper
+                    current_anchor_pos[i] += stepper[i].step_dist * (
+                
+                    # Determine the position on the line of movement
+                
+                    # Determine the suitable time for this should happen
+                
+                    # Que this time
+                    step(move_time)
+                
+        # Loop is complete.                        
+                        
+                         
     # Helper functions for DELTA_CALIBRATE script
     def get_stable_position(self):
         return [int((ep - s.mcu_stepper.get_commanded_position())
