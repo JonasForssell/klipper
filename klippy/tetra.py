@@ -312,7 +312,30 @@ class TetraKinematics:
 # ......or deceleration
 # ....call the stepper.step() method with the time to put this step in a que for the controller
 
-
+# Mathematical problem is
+# P is starting point
+# A is anchor point
+# V is the (unit)vector of the line which the effector movement follows                       
+# Q is the new position when the effector has moved one step
+#
+# Next, we know the following
+# L is the line length between anchor and starting point, i.e. length of vector PA
+# L+S is the line length between anchor and next point, i.e. length of vector QA 
+# M is the length between starting point and next point i.e. length of vector PQ
+#
+# We also know that Q should be along the line of movement so Q = P + X*V                       
+#
+# Let APx = Ax - Px and so on                        
+# If we set up the length of vector QA, and we substitue coordinates of Q with the equation above we get
+#
+# L+S = SQRT( (APx - M*Vx)^2 + (APy - M*Vy)^2 + (APz - M*Vz)^2)
+#
+#                        
+# Solving this equation for M gives a long expression                        
+#                        
+# M = (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz-L^2-2*L*S-S^2 )) 
+#               + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)                       
+#
 
 
     # Helper functions for DELTA_CALIBRATE script
