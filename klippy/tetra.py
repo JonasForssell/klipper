@@ -286,18 +286,26 @@ class TetraKinematics:
             current_anchor_pos = _cartesian_to_actuator(move.start_pos)
             
             
-            if accel_d:
-                step_tetra(move_time, AP_d, accel_d, accel, L, S)
-                vt_startz += accel_d * movez_r
-                vt_startxy_d -= accel_d * movexy_r
-                move_time += move.accel_t
-            if cruise_d:
-                step_delta(move_time, AP_d, cruise_d, 0., L, S)
-                vt_startz += cruise_d * movez_r
-                vt_startxy_d -= cruise_d * movexy_r
-                move_time += move.cruise_t
-            if decel_d:
-                step_delta(move_time, AP_d, decel_d, -accel, L, S)
+            while current_pos_r < accel_d
+                # Take one step on the stepper
+                # Calculate effector position
+                # Calculate corresponding time
+                # Push time on stack
+                step(move_time)
+                    
+            while current_pos_r < (accel_d + cruise_d)
+                # Take one step on the stepper
+                # Calculate effector position
+                # Calculate corresponding time
+                # Push time on stack
+                step(move_time)
+                
+            while current_pos_r < (accel_d + cruise_d + decel_d)
+                # Take one step on the stepper
+                # Calculate effector position
+                # Calculate corresponding time
+                # Push time on stack
+                step(move_time)
   
 
 
