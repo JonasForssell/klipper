@@ -281,15 +281,25 @@ class TetraKinematics:
             # Reset move time
             move_time = print_time
             # Reset move position
-            current_pos = move.start_pos
-            # And stepper position
-            current_anchor_pos = _cartesian_to_actuator(move.start_pos)
+            current_pos_r = 0
             
+            # Determine stepping direction for stepper position
+            stepper_start_pos = _cartesian_to_actuator(move.start_pos)
+            # Calculate stepper position at the end of the move
+            stepper_end_pos = _cartesian_to_actuator(move.end_pos)
+            # Check if it is moving in the right direction
+            if stepper_end_position > stepper_start_position
+                stepper_step_distance = stepper[i].step_dist
+            else
+                stepper_step_distance = -stepper[i].step_dist
             
             while current_pos_r < accel_d
                 # Take one step on the stepper
+                current_stepper_pos += stepper_step_distance
                 # Calculate effector position
+                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, move.start_pos, move.axes_d)
                 # Calculate corresponding time
+                
                 # Push time on stack
                 step(move_time)
                     
@@ -307,8 +317,11 @@ class TetraKinematics:
                 # Push time on stack
                 step(move_time)
   
-
-
+    # Find the current position along line of movement which fulfils the stepper position
+    def _movement_position_from_stepper_pos(current_stepper_pos, move.start_pos, move.axes_d):
+    
+        
+        
 # Mathematical problem is
 # P is starting point
 # A is anchor point
@@ -345,24 +358,8 @@ class TetraKinematics:
 # We now know the position of the effector for each step on the stepper
 # This can be used to calculate at what time we should take each step on the stepper.
 #
-
-   def step_tetra(self, move_time, AP_d, cruise_v, accel, L, S):
-        
-        while current_d < accel_d   #Still within the accel_d distance 
-                
-                    # Take one step with the stepper
-                    current_anchor_pos[i] += stepper[i].step_dist * (
-                
-                    # Determine the position on the line of movement
-                
-                    # Determine the suitable time for this should happen
-                
-                    # Que this time
-                    step(move_time)
-                
-        # Loop is complete.                        
-                        
-                         
+                  
+                                                
     # Helper functions for DELTA_CALIBRATE script
     def get_stable_position(self):
         return [int((ep - s.mcu_stepper.get_commanded_position())
