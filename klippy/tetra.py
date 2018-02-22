@@ -319,7 +319,8 @@ class TetraKinematics:
   
     # Find the current position along line of movement which fulfils the stepper position
     def _movement_position_from_stepper_pos(current_stepper_pos, move.start_pos, move.axes_d):
-    
+        return (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
+               + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
         
         
 # Mathematical problem is
