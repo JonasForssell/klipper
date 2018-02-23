@@ -230,24 +230,14 @@ class TetraKinematics:
         axes_d = move.axes_d
         # Total combined length of the movements in all three directions
         move_d = move.move_d
-        # xy movement ratio (from 0 to 1)
-        movexy_r = 1.
-        # z move ratio
-        movez_r = 0.
-        # Inverse of combined length
-        inv_movexy_d = 1. / move_d
-        
+               
         # Starting position (in local coordinate system)
         anchors_start = _cartesian_to_actuator(move.start_pos)
         # Ending position 
         anchors_end = _cartesian_to_actuator(move.end_pos)
-        # Determine the length difference at each actuator
-        anchor_movement = matrix_sub(anchors_end,anchors_start)
-        # Determine how many steps are required to cover this distance
-        # Here we assume the three anchors have the same configuration
-        anchor_steps = matrix_mul(anchors_movement,1/stepper[0].step_dist)
+
         
-        # Determine how long part of this is acceleration, cruise and deceleration
+        # Set up the movement profile consisting of three phases
         #
         #
         #       ______cruise_d____
@@ -271,6 +261,7 @@ class TetraKinematics:
             move_time = print_time
             # Reset move position
             current_pos_r = 0
+            current_stepper_pos = 0
             
             # Determine stepping direction for stepper position
             stepper_start_pos = _cartesian_to_actuator(move.start_pos)
@@ -281,11 +272,11 @@ class TetraKinematics:
                 stepper_step_distance = stepper[i].step_dist
             else
                 stepper_step_distance = -stepper[i].step_dist
+                
             # Calculate reversal point if the effector passes it
             # This is achieved by orthogonal projection of the anchor point onto the line of movement.
             # https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
             anchor_d = matrix_sub(anchor[i], move.start_pos)
-            
             reversal_point = matrix_dot(anchor_d, axes_d) / matrix_dot(axes_d, axes_d)
             
             # Now walk along the line one step at a time and plot the time as we go along
