@@ -270,6 +270,7 @@ class TetraKinematics:
         #
         accel = move.accel
         cruise_v = move.cruise_v
+        decel = move.decel
         accel_d = move.accel_r * move_d
         cruise_d = move.cruise_r * move_d
         decel_d = move.decel_r * move_d
@@ -299,7 +300,8 @@ class TetraKinematics:
             
             reversal_point = matrix_dot(anchor_d, axes_d) / matrix_dot(axes_d, axes_d)
             
-            # Now walk along the line one step at a time and plot the 
+            # Now walk along the line one step at a time and plot the time as we go along
+            # Phase 1: Movement with acceleration
             while current_pos_r < accel_d
                 # Take one step on the stepper
                 if current_pos_r < reversal_point
@@ -308,11 +310,16 @@ class TetraKinematics:
                     current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
                 current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
-                # Calculate corresponding time
-                
+                # Calculate corresponding time after continuos acceleration up to this point
+                move_time = sqrt(current_pos_r*move_d/accel)
                 # Push time on stack
                 step(move_time)
-                    
+            
+            # Make a note on how far we have got up to this point
+            previous_time = move_time
+            previous_distace = current_pos_r*move_d
+            
+            # Phase 2: Movement with constant speed
             while current_pos_r < (accel_d + cruise_d)
                 # Take one step on the stepper
                 if current_pos_r < reversal_point
@@ -321,11 +328,16 @@ class TetraKinematics:
                     current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
                 current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
-                # Calculate corresponding time
-                
+                # Calculate corresponding time after acceleration phase and then continuous motion up to this point
+                move_time = previous_time + (current_pos_r*move_d - previous_distance)/cruise_v
                 # Push time on stack
                 step(move_time)
-                
+  
+            # Make a note on how far we have got up to this point
+            previous_time = move_time
+            previous_distace = current_pos_r*move_d
+
+            # Phase 3: Movement with deceleration
             while current_pos_r < (accel_d + cruise_d + decel_d)
                 # Take one step on the stepper
                 if (current_pos_r < reversal_point)
@@ -334,8 +346,8 @@ class TetraKinematics:
                     current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
                 current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
-                # Calculate corresponding time
-                
+                # Calculate corresponding time after phase 1 and 2 and now deceleration
+                move_time = previous_time + sqrt((current_pos_r*move_d-previous_distance)/decel)
                 # Push time on stack
                 step(move_time)
         # Now, repeat this for all steppers
@@ -343,6 +355,42 @@ class TetraKinematics:
         
         
     # Find the current position along line of movement which fulfils the stepper position
+    # Mathematical problem is
+    # P is starting point
+    # A is anchor point
+    # V is the (unit)vector of the line which the effector movement follows                       
+    # Q is the new position when the effector has moved one step
+    #
+    #    A                    
+    #    .                                  
+    #    .  .  L+S                         
+    #  L .    .             ....> V          
+    #    .      .    .......  
+    #    .     ...Q..
+    #    ......                    
+    #  P      M                
+    #                        
+    # Next, we know the following
+    # L is the line length between anchor and starting point, i.e. length of vector PA
+    # L+S is the line length between anchor and next point, i.e. length of vector QA 
+    # M is the length between starting point and next point i.e. length of vector PQ
+    #
+    # We also know that Q should be along the line of movement so Q = P + M*V                       
+    #
+    # Let APx = Ax - Px and so on                        
+    # If we set up the length of vector QA, and we substitue coordinates of Q with the equation above we get
+    #
+    # L+S = SQRT( (APx - M*Vx)^2 + (APy - M*Vy)^2 + (APz - M*Vz)^2 )
+    #
+    #                        
+    # Solving this equation for M gives a long expression                        
+    #                        
+    # M = (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz-L^2-2*L*S-S^2 )) 
+    #               + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)                       
+    #
+    # We now know the position of the effector for each step on the stepper
+    # This can be used to calculate at what time we should take each step on the stepper.
+    #
     def _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d):
         
         if current_stepper_pos < reversal_point
@@ -353,42 +401,7 @@ class TetraKinematics:
                    + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
         
         
-# Mathematical problem is
-# P is starting point
-# A is anchor point
-# V is the (unit)vector of the line which the effector movement follows                       
-# Q is the new position when the effector has moved one step
-#
-#    A                    
-#    .                                  
-#    .  .  L+S                         
-#  L .    .             ....> V          
-#    .      .    .......  
-#    .     ...Q..
-#    ......                    
-#  P      M                
-#                        
-# Next, we know the following
-# L is the line length between anchor and starting point, i.e. length of vector PA
-# L+S is the line length between anchor and next point, i.e. length of vector QA 
-# M is the length between starting point and next point i.e. length of vector PQ
-#
-# We also know that Q should be along the line of movement so Q = P + M*V                       
-#
-# Let APx = Ax - Px and so on                        
-# If we set up the length of vector QA, and we substitue coordinates of Q with the equation above we get
-#
-# L+S = SQRT( (APx - M*Vx)^2 + (APy - M*Vy)^2 + (APz - M*Vz)^2 )
-#
-#                        
-# Solving this equation for M gives a long expression                        
-#                        
-# M = (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz-L^2-2*L*S-S^2 )) 
-#               + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)                       
-#
-# We now know the position of the effector for each step on the stepper
-# This can be used to calculate at what time we should take each step on the stepper.
-#
+
                   
                                                 
     # Helper functions for DELTA_CALIBRATE script
