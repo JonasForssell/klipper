@@ -302,7 +302,10 @@ class TetraKinematics:
             # Now walk along the line one step at a time and plot the 
             while current_pos_r < accel_d
                 # Take one step on the stepper
-                current_stepper_pos += stepper_step_distance
+                if current_pos_r < reversal_point
+                    current_stepper_pos += stepper_step_distance
+                else
+                    current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
                 current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
                 # Calculate corresponding time
@@ -312,18 +315,33 @@ class TetraKinematics:
                     
             while current_pos_r < (accel_d + cruise_d)
                 # Take one step on the stepper
+                if current_pos_r < reversal_point
+                    current_stepper_pos += stepper_step_distance
+                else
+                    current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
+                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
                 # Calculate corresponding time
+                
                 # Push time on stack
                 step(move_time)
                 
             while current_pos_r < (accel_d + cruise_d + decel_d)
                 # Take one step on the stepper
+                if (current_pos_r < reversal_point)
+                    current_stepper_pos += stepper_step_distance
+                else
+                    current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
+                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
                 # Calculate corresponding time
+                
                 # Push time on stack
                 step(move_time)
-  
+        # Now, repeat this for all steppers
+    # All times have been pushed
+        
+        
     # Find the current position along line of movement which fulfils the stepper position
     def _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d):
         
