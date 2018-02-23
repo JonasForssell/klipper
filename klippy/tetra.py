@@ -292,12 +292,19 @@ class TetraKinematics:
                 stepper_step_distance = stepper[i].step_dist
             else
                 stepper_step_distance = -stepper[i].step_dist
+            # Calculate reversal point if the effector passes it
+            # This is achieved by orthogonal projection of the anchor point onto the line of movement.
+            # https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
+            anchor_d = matrix_sub(anchor[i], move.start_pos)
             
+            reversal_point = matrix_dot(anchor_d, axes_d) / matrix_dot(axes_d, axes_d)
+            
+            # Now walk along the line one step at a time and plot the 
             while current_pos_r < accel_d
                 # Take one step on the stepper
                 current_stepper_pos += stepper_step_distance
                 # Calculate effector position
-                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, move.start_pos, move.axes_d)
+                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
                 # Calculate corresponding time
                 
                 # Push time on stack
@@ -318,9 +325,14 @@ class TetraKinematics:
                 step(move_time)
   
     # Find the current position along line of movement which fulfils the stepper position
-    def _movement_position_from_stepper_pos(current_stepper_pos, move.start_pos, move.axes_d):
-        return (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
-               + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
+    def _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d):
+        
+        if current_stepper_pos < reversal_point
+            return (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
+                   + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
+        else
+            return (-0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
+                   + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
         
         
 # Mathematical problem is
