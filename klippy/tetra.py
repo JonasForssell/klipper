@@ -216,18 +216,6 @@ class TetraKinematics:
         self.limit_xy2 = min(limit_xy2, self.slow_xy2)
 
         
-        # Generic approach
-        # Calculate the line of movement for the effector by using start and endpoints from the move object
-        # For each stepper (anchor) do:
-        # ..Calculate how many steps the line length is for the stepper (total stepper movement / step_dist)
-        # ..For each step on the stepper
-        # ....Solve the position for the effector on the line of movement (using some kind of algebra)
-        # ....Determine the time this position represent based on if it is
-        # ......an acceleration
-        # ......continuous move
-        # ......or deceleration
-        # ....call the stepper.step() method with the time to put this step in a que for the controller        
-        
     def move(self, print_time, move):
         # Useful appendices from move class
         # _d distance (in mm)
