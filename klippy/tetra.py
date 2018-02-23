@@ -263,12 +263,15 @@ class TetraKinematics:
             current_pos_r = 0
             current_stepper_pos = 0
             
+            # Determine the vector from start point to anchor
+            anchor_PA = matrix_sub(self.anchors[i], move.start_pos)
+            
             # Determine stepping direction for stepper position
             stepper_start_pos = _cartesian_to_actuator(move.start_pos)
             # Calculate stepper position at the end of the move
             stepper_end_pos = _cartesian_to_actuator(move.end_pos)
             # Check if it is moving in the right direction
-            if stepper_end_position > stepper_start_position
+            if stepper_end_pos > stepper_start_pos
                 stepper_step_distance = stepper[i].step_dist
             else
                 stepper_step_distance = -stepper[i].step_dist
@@ -288,7 +291,7 @@ class TetraKinematics:
                 else
                     current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
-                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
+                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.axes_d, anchor_PA)
                 # Calculate corresponding time after continuos acceleration up to this point
                 move_time = sqrt(current_pos_r*move_d/accel)
                 # Push time on stack
@@ -306,7 +309,7 @@ class TetraKinematics:
                 else
                     current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
-                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
+                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.axes_d, anchor_PA)
                 # Calculate corresponding time after acceleration phase and then continuous motion up to this point
                 move_time = previous_time + (current_pos_r*move_d - previous_distance)/cruise_v
                 # Push time on stack
@@ -324,7 +327,7 @@ class TetraKinematics:
                 else
                     current_stepper_pos -= stepper_step_distance
                 # Calculate effector position
-                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d)
+                current_pos_r = _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.axes_d, anchor_PA)
                 # Calculate corresponding time after phase 1 and 2 and now deceleration
                 move_time = previous_time + sqrt((current_pos_r*move_d-previous_distance)/decel)
                 # Push time on stack
@@ -370,7 +373,14 @@ class TetraKinematics:
     # We now know the position of the effector for each step on the stepper
     # This can be used to calculate at what time we should take each step on the stepper.
     #
-    def _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, move.start_pos, move.axes_d):
+    def _movement_position_from_stepper_pos(current_stepper_pos, reversal_point, V, PA):
+        PAx = PA[0]       
+        PAy = PA[1]       
+        PAz = PA[2]       
+        
+        Vx = V[0]
+        Vy = V[1]
+        Vz = V[2]        
         
         if current_stepper_pos < reversal_point
             return (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
