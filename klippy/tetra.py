@@ -261,7 +261,10 @@ class TetraKinematics:
             move_time = print_time
             # Reset move position
             current_pos_r = 0
+            previous_pos_r = 0
             current_stepper_pos = 0
+            
+            beyond_reversal_point = false
             
             # Determine the vector from start point to anchor
             anchor_d = matrix_sub(self.anchors[i], move.start_pos)
@@ -286,57 +289,36 @@ class TetraKinematics:
             
             # Now walk along the line one step at a time and plot the time as we go along
             # Phase 1: Movement with acceleration
-            while current_pos_r < accel_d
-                # Take one step on the stepper
-                if current_pos_r < reversal_point
-                    current_stepper_pos += stepper_step_distance
-                    current_pos_r = _movement_position_from_stepper_pos(false, move.axes_d, anchor_d)
-                else
-                    current_stepper_pos -= stepper_step_distance
-                    current_pos_r = _movement_position_from_stepper_pos(true, move.axes_d, anchor_d)
-                # Calculate corresponding time after continuos acceleration up to this point
-                move_time = sqrt(current_pos_r*move_d/accel)
-                # Push time on stack
-                step(move_time)
-            
-            # Make a note on how far we have got up to this point
-            previous_time = move_time
-            previous_distance = current_pos_r*move_d
-            
-            # Phase 2: Movement with constant speed
-            while current_pos_r < (accel_d + cruise_d)
-                # Take one step on the stepper
-                if current_pos_r < reversal_point
-                    current_stepper_pos += stepper_step_distance
-                    current_pos_r = _movement_position_from_stepper_pos(false, move.axes_d, anchor_d)
-                else
-                    current_stepper_pos -= stepper_step_distance
-                    current_pos_r = _movement_position_from_stepper_pos(true, move.axes_d, anchor_d)
-                # Calculate corresponding time after acceleration phase and then continuous motion up to this point
-                move_time = previous_time + (current_pos_r*move_d - previous_distance)/cruise_v
-                # Push time on stack
-                step(move_time)
-  
-            # Make a note on how far we have got up to this point
-            previous_time = move_time
-            previous_distance = current_pos_r*move_d
-
-            # Phase 3: Movement with deceleration
             while current_pos_r < (accel_d + cruise_d + decel_d)
-                # Take one step on the stepper and calculate effector position on the vector of movement 
-                if current_pos_r < reversal_point
-                    current_stepper_pos += stepper_step_distance
-                    current_pos_r = _movement_position_from_stepper_pos(false, move.axes_d, anchor_d)
-                else
-                    current_stepper_pos -= stepper_step_distance
-                    current_pos_r = _movement_position_from_stepper_pos(true, move.axes_d, anchor_d
+                # Take one step on the stepper
+                current_stepper_pos += stepper_step_distance                                             
+                                                             
+                # Reverse step direction if we have gone past reversal point. Note, there are only min reversal points                                             
+                if current_stepper_pos < stepper_reversal_point
+                    stepper_step_distance = -stepper_step_distance
+                    # remember we are on the other side
+                    beyond_reversal_point = true                                         
+                    # and go the other way instead                                         
+                    current_stepper_pos += current_stepper_pos                                         
+                    current_stepper_pos += current_stepper_pos                                         
                 
-                # Calculate corresponding time after phase 1 and 2 and now deceleration
-                move_time = previous_time + sqrt((current_pos_r*move_d-previous_distance)/decel)
+                # Calculate the effector position
+                previous_pos_r = current_pos_r
+                current_pos_r = _movement_position_from_stepper_pos(beyond_reversal_point, move.axes_d, anchor_d)
+                                                             
+                # Calculate corresponding time depending on which phase we are in
+                if current_pos_r > (accel_d + cruise_d)                                             
+                    move_time += sqrt((current_pos_r-previous_pos_r)*move_d/decel)                                         
+                else if current_pos_r > accel_d
+                    move_time += (current_pos_r-previous_pos_r)/cruise_v                                         
+                else                                             
+                    move_time += sqrt((current_pos_r-previous_pos_r)*move_d/accel)
+                                                             
                 # Push time on stack
                 step(move_time)
-        # Now, repeat this for all steppers
-    # All times have been pushed
+            
+            # Now, repeat this for all steppers
+        # All times have been pushed
         
         
     # Find the current position along line of movement which fulfils the stepper position
