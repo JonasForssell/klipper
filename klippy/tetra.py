@@ -301,7 +301,7 @@ class TetraKinematics:
             
             # Make a note on how far we have got up to this point
             previous_time = move_time
-            previous_distace = current_pos_r*move_d
+            previous_distance = current_pos_r*move_d
             
             # Phase 2: Movement with constant speed
             while current_pos_r < (accel_d + cruise_d)
@@ -319,7 +319,7 @@ class TetraKinematics:
   
             # Make a note on how far we have got up to this point
             previous_time = move_time
-            previous_distace = current_pos_r*move_d
+            previous_distance = current_pos_r*move_d
 
             # Phase 3: Movement with deceleration
             while current_pos_r < (accel_d + cruise_d + decel_d)
