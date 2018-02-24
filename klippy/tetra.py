@@ -292,7 +292,7 @@ class TetraKinematics:
             # Calculate stepper position at the end of the move
             stepper_end_pos = _cartesian_to_actuator(move.end_pos)
             # Check if it is moving in the right direction
-            if stepper_end_pos > stepper_start_pos
+            if stepper_end_pos > stepper_start_pos:
                 stepper_step_distance = stepper[i].step_dist
             else
                 stepper_step_distance = -stepper[i].step_dist
@@ -312,7 +312,7 @@ class TetraKinematics:
                 current_stepper_pos += stepper_step_distance                                             
                                                              
                 # Reverse step direction if we have gone past reversal point. Note, there are only min reversal points                                             
-                if current_stepper_pos < stepper_reversal_point
+                if current_stepper_pos < stepper_reversal_point:
                     stepper_step_distance = -stepper_step_distance
                     # remember we are on the other side
                     beyond_reversal_point = true                                         
@@ -325,9 +325,9 @@ class TetraKinematics:
                 current_pos_r = _movement_position_from_stepper_pos(beyond_reversal_point, move.axes_d, anchor_d, current_stepper_pos)
                                                              
                 # Calculate corresponding time depending on which phase we are in
-                if current_pos_r > (accel_d + cruise_d)                                             
+                if current_pos_r > (accel_d + cruise_d):                                             
                     move_time += sqrt((current_pos_r-previous_pos_r)*move_d/decel)                                         
-                else if current_pos_r > accel_d
+                else if current_pos_r > accel_d:
                     move_time += (current_pos_r-previous_pos_r)/cruise_v                                         
                 else                                             
                     move_time += sqrt((current_pos_r-previous_pos_r)*move_d/accel)
@@ -385,7 +385,7 @@ class TetraKinematics:
         Vy = V[1]
         Vz = V[2]        
         
-        if beyond_reversal_point
+        if beyond_reversal_point:
             return (-0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
                    + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
         else
