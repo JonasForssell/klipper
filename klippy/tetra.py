@@ -294,7 +294,7 @@ class TetraKinematics:
             # Check if it is moving in the right direction
             if stepper_end_pos > stepper_start_pos:
                 stepper_step_distance = stepper[i].step_dist
-            else
+            else:
                 stepper_step_distance = -stepper[i].step_dist
                 
             # Calculate reversal point if the effector passes it
@@ -327,9 +327,9 @@ class TetraKinematics:
                 # Calculate corresponding time depending on which phase we are in
                 if current_pos_r > (accel_d + cruise_d):                                             
                     move_time += sqrt((current_pos_r-previous_pos_r)*move_d/decel)                                         
-                else if current_pos_r > accel_d:
+                elif current_pos_r > accel_d:
                     move_time += (current_pos_r-previous_pos_r)/cruise_v                                         
-                else                                             
+                else:                                             
                     move_time += sqrt((current_pos_r-previous_pos_r)*move_d/accel)
                                                              
                 # Push time on stack
@@ -388,7 +388,7 @@ class TetraKinematics:
         if beyond_reversal_point:
             return (-0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
                    + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
-        else
+        else:
             return (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
                    + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
         
