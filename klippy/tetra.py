@@ -307,7 +307,7 @@ class TetraKinematics:
             
             # Now walk along the line one step at a time and plot the time as we go along
             # Phase 1: Movement with acceleration
-            while current_pos_r < (accel_d + cruise_d + decel_d)
+            while current_pos_r < (accel_d + cruise_d + decel_d):
                 # Take one step on the stepper
                 current_stepper_pos += stepper_step_distance                                             
                                                              
