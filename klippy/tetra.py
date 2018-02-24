@@ -304,7 +304,7 @@ class TetraKinematics:
                 
                 # Calculate the effector position
                 previous_pos_r = current_pos_r
-                current_pos_r = _movement_position_from_stepper_pos(beyond_reversal_point, move.axes_d, anchor_d)
+                current_pos_r = _movement_position_from_stepper_pos(beyond_reversal_point, move.axes_d, anchor_d, current_stepper_pos)
                                                              
                 # Calculate corresponding time depending on which phase we are in
                 if current_pos_r > (accel_d + cruise_d)                                             
@@ -358,7 +358,7 @@ class TetraKinematics:
     # We now know the position of the effector for each step on the stepper
     # This can be used to calculate at what time we should take each step on the stepper.
     #
-    def _movement_position_from_stepper_pos(beyond_reversal_point, V, PA):
+    def _movement_position_from_stepper_pos(beyond_reversal_point, V, PA, current_stepper_pos):
         PAx = PA[0]       
         PAy = PA[1]       
         PAz = PA[2]       
