@@ -115,10 +115,28 @@ class TetraKinematics:
                         + (self.anchors[i][2] - coord[2])**2)
                 for i in StepList]
 
-    # Derive the cartesian postion using triateration (end of file)
+    # Derive the cartesian postion using triateration (see wikipedia)
     def _actuator_to_cartesian(self, pos):
-        return actuator_to_cartesian(self.anchors, pos)
-    
+        s21 = matrix_sub(anchors[1], anchors[0])
+        s31 = matrix_sub(anchors[2], anchors[0])
+
+        d = math.sqrt(matrix_magsq(s21))
+        ex = matrix_mul(s21, 1. / d)
+        i = matrix_dot(ex, s31)
+        vect_ey = matrix_sub(s31, matrix_mul(ex, i))
+        ey = matrix_mul(vect_ey, 1. / math.sqrt(matrix_magsq(vect_ey)))
+        ez = matrix_cross(ex, ey)
+        j = matrix_dot(ey, s31)
+
+        x = (pos[0]**2 - pos[1]**2 + d**2) / (2. * d)
+        y = (pos[0]**2 - pos[2]**2 - x**2 + (x-i)**2 + j**2) / (2. * j)
+        z = -math.sqrt(pos[0]**2 - x**2 - y**2)
+
+        ex_x = matrix_mul(ex, x)
+        ey_y = matrix_mul(ey, y)
+        ez_z = matrix_mul(ez, z)
+        return matrix_add(anchors[0], matrix_add(ex_x, matrix_add(ey_y, ez_z)))
+
     # Returns the current cartesian position of the nozzle
     def get_position(self):
         spos = [s.mcu_stepper.get_commanded_position() for s in self.steppers]
@@ -419,26 +437,4 @@ def matrix_sub(m1, m2):
 
 def matrix_mul(m1, s):
     return [m1[0]*s, m1[1]*s, m1[2]*s]
-
-def actuator_to_cartesian(anchors, pos):
-    # Find nozzle position using trilateration (see wikipedia)
-    s21 = matrix_sub(anchors[1], anchors[0])
-    s31 = matrix_sub(anchors[2], anchors[0])
-
-    d = math.sqrt(matrix_magsq(s21))
-    ex = matrix_mul(s21, 1. / d)
-    i = matrix_dot(ex, s31)
-    vect_ey = matrix_sub(s31, matrix_mul(ex, i))
-    ey = matrix_mul(vect_ey, 1. / math.sqrt(matrix_magsq(vect_ey)))
-    ez = matrix_cross(ex, ey)
-    j = matrix_dot(ey, s31)
-
-    x = (pos[0]**2 - pos[1]**2 + d**2) / (2. * d)
-    y = (pos[0]**2 - pos[2]**2 - x**2 + (x-i)**2 + j**2) / (2. * j)
-    z = -math.sqrt(pos[0]**2 - x**2 - y**2)
-
-    ex_x = matrix_mul(ex, x)
-    ey_y = matrix_mul(ey, y)
-    ez_z = matrix_mul(ez, z)
-    return matrix_add(carriage1, matrix_add(ex_x, matrix_add(ey_y, ez_z)))
 
