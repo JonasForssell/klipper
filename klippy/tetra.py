@@ -348,7 +348,7 @@ class TetraKinematics:
     #
     #    A                    
     #    .                                  
-    #    .  .  L+S                         
+    #    .  .  LS                         
     #  L .    .             ....> V          
     #    .      .    .......  
     #    .     ...Q..
@@ -357,7 +357,7 @@ class TetraKinematics:
     #                        
     # Next, we know the following
     # L is the line length between anchor and starting point, i.e. length of vector PA
-    # L+S is the line length between anchor and next point, i.e. length of vector QA 
+    # LS is the line length between anchor and next point, i.e. length of vector QA 
     # M is the length between starting point and next point i.e. length of vector PQ
     #
     # We also know that Q should be along the line of movement so Q = P + M*V                       
@@ -365,12 +365,12 @@ class TetraKinematics:
     # Let APx = Ax - Px and so on                        
     # If we set up the length of vector QA, and we substitue coordinates of Q with the equation above we get
     #
-    # L+S = SQRT( (APx - M*Vx)^2 + (APy - M*Vy)^2 + (APz - M*Vz)^2 )
-    #
+    # LS = SQRT( (APx - M*Vx)^2 + (APy - M*Vy)^2 + (APz - M*Vz)^2 )
+    # LS is the same as the current stepper position (in local coordinates)
     #                        
     # Solving this equation for M gives a long expression                        
     #                        
-    # M = (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz-L^2-2*L*S-S^2 )) 
+    # M = (0.5*SQRT( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz-LS^2)) 
     #               + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)                       
     #
     # We now know the position of the effector for each step on the stepper
