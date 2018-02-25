@@ -303,7 +303,7 @@ class TetraKinematics:
             reversal_point = matrix_dot(anchor_d, axes_d) / matrix_dot(axes_d, axes_d)
             
             # Express this in stepper coordinates
-            stepper_reversal_point = matrix_magsq(matrix_sub(anchor_d, matrix_mul(axes_d, reversal_point)))
+            stepper_reversal_point = math.sqrt(matrix_magsq(matrix_sub(anchor_d, matrix_mul(axes_d, reversal_point))))
             
             # Now walk along the line one step at a time and plot the time as we go along
             # Phase 1: Movement with acceleration
