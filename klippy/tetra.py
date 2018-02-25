@@ -53,7 +53,7 @@ class TetraKinematics:
         
         # The z-coordinate when one of the arms are straight down.
         # From this point the build cylinder must become a cone
-        self.limit_z = min([s.position_endstop - (arm - sqrt(arm**2 - radius**2))
+        self.limit_z = min([s.position_endstop - (arm - math.sqrt(arm**2 - radius**2))
                             for s, arm in zip(self.steppers, arm_lengths)])
         
         # Logging into about printer setup
