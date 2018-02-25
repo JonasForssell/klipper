@@ -393,7 +393,6 @@ class TetraKinematics:
                    + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx**2 + Vy**2 + Vz**2)
         
         
-
                   
                                                 
     # Helper functions for DELTA_CALIBRATE script
