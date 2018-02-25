@@ -282,7 +282,7 @@ class TetraKinematics:
             previous_pos_r = 0
             current_stepper_pos = 0
             
-            beyond_reversal_point = false
+            beyond_reversal_point = False
             
             # Determine the vector from start point to anchor
             anchor_d = matrix_sub(self.anchors[i], move.start_pos)
@@ -315,7 +315,7 @@ class TetraKinematics:
                 if current_stepper_pos < stepper_reversal_point:
                     stepper_step_distance = -stepper_step_distance
                     # remember we are on the other side
-                    beyond_reversal_point = true                                         
+                    beyond_reversal_point = True                                         
                     # and go the other way instead                                         
                     current_stepper_pos += current_stepper_pos                                         
                     current_stepper_pos += current_stepper_pos                                         
@@ -386,11 +386,11 @@ class TetraKinematics:
         Vz = V[2]        
         
         if beyond_reversal_point:
-            return (-0.5*math.sqrt( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
-                   + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
+            return (-0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)^2 -4*(Vx+Vy+Vz)*(PAx+PAy+PAz - current_stepper_pos^2)) 
+                   + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
         else:
-            return (0.5*math.sqrt( (-2*APx*Vx - 2*APy*Vy - 2*APz*Vz)^2 -4*(Vx+Vy+Vz)*(APx+APy+APz - current_stepper_pos^2)) 
-                   + APx*Vx + APy*Vy + APz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
+            return (0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)^2 -4*(Vx+Vy+Vz)*(PAx+PAy+PAz - current_stepper_pos^2)) 
+                   + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx^2 + Vy^2 + Vz^2)
         
         
 
