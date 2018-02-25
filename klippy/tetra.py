@@ -77,7 +77,7 @@ class TetraKinematics:
         
         self.anchors = [(math.cos(math.radians(angle)) * radius,
                         math.sin(math.radians(angle)) * radius,
-                        es.position_endstop + sqrt(arm**2 - radius**2))
+                        es.position_endstop + math.sqrt(arm**2 - radius**2))
                        for angle, es, arm in zip(self.angles, self.steppers, arm_lengths)]
         
         # Find the point where an XY move could result in excessive
