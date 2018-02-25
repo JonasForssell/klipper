@@ -55,12 +55,12 @@ class TetraKinematics:
         # From this point the build cylinder must become a cone
         self.limit_z = min([s.position_endstop - (arm - sqrt(arm**2 - radius**2))
                             for s, arm in zip(self.steppers, arm_lengths)])
-                         
+        
         # Logging into about printer setup
         logging.info(
             "Tetra max build height %.2fmm (radius tapered above %.2fmm)" % (
                 self.max_z, self.limit_z))
-                         
+        
         # Setup stepper velocities
         self.max_velocity, self.max_accel = toolhead.get_max_velocity()
         self.max_z_velocity = config.getfloat(
@@ -69,7 +69,7 @@ class TetraKinematics:
         max_halt_velocity = toolhead.get_max_axis_halt()
         for s in self.steppers:
             s.set_max_jerk(max_halt_velocity, self.max_accel)
-                         
+        
         # Determine anchor xyz locations in cartesian space
         self.angles = [sconfig.getfloat('angle', angle)
                        for sconfig, angle in zip(stepper_configs,
@@ -79,7 +79,7 @@ class TetraKinematics:
                         math.sin(math.radians(angle)) * radius,
                         es.position_endstop + sqrt(arm**2 - radius**2))
                        for angle, es, arm in zip(self.angles, self.steppers, arm_lengths)]
-                         
+        
         # Find the point where an XY move could result in excessive
         # stepper movement
         half_min_step_dist = min([s.step_dist for s in self.steppers]) * .5
@@ -93,7 +93,7 @@ class TetraKinematics:
         self.very_slow_xy2 = (ratio_to_dist(2. * SLOW_RATIO) - radius)**2
         self.max_xy2 = min(radius, min_arm_length - radius,
                            ratio_to_dist(4. * SLOW_RATIO) - radius)**2
-                         
+        
         # Info regarding printer speed configuration                 
         logging.info(
             "Tetra max build radius %.2fmm (moves slowed past %.2fmm and %.2fmm)"
@@ -102,10 +102,10 @@ class TetraKinematics:
         
         # Set start position
         self.set_position([0., 0., 0.], ())
-                         
+        
     def get_steppers(self, flags=""):
         return list(self.steppers)
-                         
+    
     # return length of the three arms as the actuator position by calculating the hypotenusa
     # The arm length is directly related to the stepper motor position so this
     # is the local coordinate position for the stepper
@@ -114,12 +114,12 @@ class TetraKinematics:
                         + (self.anchors[i][1] - coord[1])**2 
                         + (self.anchors[i][2] - coord[2])**2)
                 for i in StepList]
-
+    
     # Derive the cartesian postion using triateration (see wikipedia)
     def _actuator_to_cartesian(self, pos):
         s21 = matrix_sub(anchors[1], anchors[0])
         s31 = matrix_sub(anchors[2], anchors[0])
-
+        
         d = math.sqrt(matrix_magsq(s21))
         ex = matrix_mul(s21, 1. / d)
         i = matrix_dot(ex, s31)
@@ -127,60 +127,60 @@ class TetraKinematics:
         ey = matrix_mul(vect_ey, 1. / math.sqrt(matrix_magsq(vect_ey)))
         ez = matrix_cross(ex, ey)
         j = matrix_dot(ey, s31)
-
+        
         x = (pos[0]**2 - pos[1]**2 + d**2) / (2. * d)
         y = (pos[0]**2 - pos[2]**2 - x**2 + (x-i)**2 + j**2) / (2. * j)
         z = -math.sqrt(pos[0]**2 - x**2 - y**2)
-
+        
         ex_x = matrix_mul(ex, x)
         ey_y = matrix_mul(ey, y)
         ez_z = matrix_mul(ez, z)
         return matrix_add(anchors[0], matrix_add(ex_x, matrix_add(ey_y, ez_z)))
-
+        
     # Returns the current cartesian position of the nozzle
     def get_position(self):
         spos = [s.mcu_stepper.get_commanded_position() for s in self.steppers]
         return self._actuator_to_cartesian(spos)
-                         
+    
     # Sets the cartesian position of the nozzle
     def set_position(self, newpos, homing_axes):
         pos = self._cartesian_to_actuator(newpos)
         for i in StepList:
             self.steppers[i].set_position(pos[i])
-                         
+        
         self.limit_xy2 = -1.
         if tuple(homing_axes) == StepList:
             self.need_home = False
     
     # Homes the printer                         
     def home(self, homing_state):
-                         
+        
         # All axes are homed simultaneously
         homing_state.set_axes([0, 1, 2])
         endstops = [es for s in self.steppers for es in s.get_endstops()]
         s = self.steppers[0] # Assume homing speed same for all steppers
-                         
+        
         # Initial homing
         homing_speed = min(s.homing_speed, self.max_z_velocity)
         homepos = [0., 0., self.max_z, None]
         coord = list(homepos)
         coord[2] = -1.5 * math.sqrt(max(self.arm2)-self.max_xy2)
         homing_state.home(coord, homepos, endstops, homing_speed)
-                         
+        
         # Retract
         coord[2] = homepos[2] - s.homing_retract_dist
         homing_state.retract(coord, homing_speed)
-                         
+        
         # Home again
         coord[2] -= s.homing_retract_dist
         homing_state.home(coord, homepos, endstops,
                           homing_speed/2.0, second_home=True)
-                         
+        
         # Set final homed position
         spos = [ep + s.get_homed_offset()
                 for ep, s in zip(self.endstops, self.steppers)]
         homing_state.set_homed_position(self._actuator_to_cartesian(spos))
-                         
+        
     def motor_off(self, print_time):
         self.limit_xy2 = -1.
         for stepper in self.steppers:
@@ -202,7 +202,7 @@ class TetraKinematics:
         
         if self.need_home:
             raise homing.EndstopMoveError(end_pos, "Must home first")
-            
+        
         limit_xy2 = self.max_xy2
         
         # Limit movement to a cone when above limit_z
@@ -212,11 +212,11 @@ class TetraKinematics:
         # Outside operating volume -> throw error
         if xy2 > limit_xy2 or end_pos[2] < self.min_z or end_pos[2] > self.max_z:
             raise homing.EndstopMoveError(end_pos)
-            
+        
         if move.axes_d[2]:
             move.limit_speed(self.max_z_velocity, move.accel)
             limit_xy2 = -1.
-            
+        
         # Limit the speed/accel of this move if is is at the extreme
         # end of the build envelope
         extreme_xy2 = max(xy2, move.start_pos[0]**2 + move.start_pos[1]**2)
@@ -232,7 +232,7 @@ class TetraKinematics:
             limit_xy2 = -1.
             
         self.limit_xy2 = min(limit_xy2, self.slow_xy2)
-
+        
         
     def move(self, print_time, move):
         # Useful appendices from move class
@@ -248,12 +248,12 @@ class TetraKinematics:
         axes_d = move.axes_d
         # Total combined length of the movements in all three directions
         move_d = move.move_d
-               
+        
         # Starting position (in local coordinate system)
         anchors_start = _cartesian_to_actuator(move.start_pos)
         # Ending position 
         anchors_end = _cartesian_to_actuator(move.end_pos)
-
+        
         
         # Set up the movement profile consisting of three phases
         #
@@ -296,7 +296,7 @@ class TetraKinematics:
                 stepper_step_distance = stepper[i].step_dist
             else:
                 stepper_step_distance = -stepper[i].step_dist
-                
+            
             # Calculate reversal point if the effector passes it
             # This is achieved by orthogonal projection of the anchor point onto the line of movement.
             # https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
@@ -310,7 +310,7 @@ class TetraKinematics:
             while (current_pos_r < move_d):
                 # Take one step on the stepper
                 current_stepper_pos += stepper_step_distance                                             
-                                                             
+                
                 # Reverse step direction if we have gone past reversal point. Note, there are only min reversal points                                             
                 if current_stepper_pos < stepper_reversal_point:
                     stepper_step_distance = -stepper_step_distance
@@ -323,7 +323,7 @@ class TetraKinematics:
                 # Calculate the effector position
                 previous_pos_r = current_pos_r
                 current_pos_r = _movement_position_from_stepper_pos(beyond_reversal_point, move.axes_d, anchor_d, current_stepper_pos)
-                                                             
+                
                 # Calculate corresponding time depending on which phase we are in
                 if current_pos_r > (accel_d + cruise_d):                                             
                     move_time += math.sqrt((current_pos_r-previous_pos_r)*move_d/decel)                                         
@@ -331,7 +331,7 @@ class TetraKinematics:
                     move_time += (current_pos_r-previous_pos_r)/cruise_v                                         
                 else:                                             
                     move_time += math.sqrt((current_pos_r-previous_pos_r)*move_d/accel)
-                                                             
+                
                 # Push time on stack
                 step(move_time)
             
@@ -391,10 +391,10 @@ class TetraKinematics:
         else:
             return (-0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)**2 -4*(Vx**2+Vy**2+Vz**2)*(PAx**2+PAy**2+PAz**2 - current_stepper_pos**2)) 
                    + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx**2 + Vy**2 + Vz**2)
+    
         
-        
-                  
-                                                
+    
+    
     # Helper functions for DELTA_CALIBRATE script
     def get_stable_position(self):
         return [int((ep - s.mcu_stepper.get_commanded_position())
