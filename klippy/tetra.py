@@ -83,16 +83,16 @@ class TetraKinematics:
         
         logging.info(
             "Anchor 0: X:%.2fmm Y:%.2fmm Z: %.2fmm)"
-            % self.anchors[0][0], self.anchors[0][1],
-               self.anchors[0][2])
+            % (self.anchors[0][0], self.anchors[0][1],
+               self.anchors[0][2]))
         logging.info(
             "Anchor 1: X:%.2fmm Y:%.2fmm Z: %.2fmm)"
-            % self.anchors[1][0], self.anchors[1][1],
-               self.anchors[1][2])
+            % (self.anchors[1][0], self.anchors[1][1],
+               self.anchors[1][2]))
         logging.info(
             "Anchor 1: X:%.2fmm Y:%.2fmm Z: %.2fmm)"
-            % self.anchors[2][0], self.anchors[2][1],
-               self.anchors[2][2])
+            % (self.anchors[2][0], self.anchors[2][1],
+               self.anchors[2][2]))
         
         
         # Find the point where an XY move could result in excessive
@@ -265,9 +265,9 @@ class TetraKinematics:
         move_d = move.move_d
         
         # Starting position (in local coordinate system)
-        anchors_start = _cartesian_to_actuator(move.start_pos)
+        anchors_start = self._cartesian_to_actuator(move.start_pos)
         # Ending position 
-        anchors_end = _cartesian_to_actuator(move.end_pos)
+        anchors_end = self._cartesian_to_actuator(move.end_pos)
         
         
         # Set up the movement profile consisting of three phases
@@ -303,9 +303,9 @@ class TetraKinematics:
             anchor_d = matrix_sub(self.anchors[i], move.start_pos)
             
             # Determine stepping direction for stepper position
-            stepper_start_pos = _cartesian_to_actuator(move.start_pos)
+            stepper_start_pos = self._cartesian_to_actuator(move.start_pos)
             # Calculate stepper position at the end of the move
-            stepper_end_pos = _cartesian_to_actuator(move.end_pos)
+            stepper_end_pos = self._cartesian_to_actuator(move.end_pos)
             # Check if it is moving in the right direction
             if stepper_end_pos > stepper_start_pos:
                 stepper_step_distance = stepper[i].step_dist
