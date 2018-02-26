@@ -308,9 +308,9 @@ class TetraKinematics:
             stepper_end_pos = self._cartesian_to_actuator(move.end_pos)
             # Check if it is moving in the right direction
             if stepper_end_pos > stepper_start_pos:
-                stepper_step_distance = stepper[i].step_dist
+                stepper_step_distance = self.steppers[i].step_dist
             else:
-                stepper_step_distance = -stepper[i].step_dist
+                stepper_step_distance = -self.steppers[i].step_dist
             
             # Calculate reversal point if the effector passes it
             # This is achieved by orthogonal projection of the anchor point onto the line of movement.
