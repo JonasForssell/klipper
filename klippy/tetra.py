@@ -281,7 +281,7 @@ class TetraKinematics:
         #
         accel = move.accel
         cruise_v = move.cruise_v
-        decel = move.decel
+        decel = -accel
         accel_d = move.accel_r * move_d
         cruise_d = move.cruise_r * move_d
         decel_d = move.decel_r * move_d
