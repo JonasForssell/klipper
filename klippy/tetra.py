@@ -391,7 +391,7 @@ class TetraKinematics:
     # We now know the position of the effector for each step on the stepper
     # This can be used to calculate at what time we should take each step on the stepper.
     #
-    def _movement_position_from_stepper_pos(beyond_reversal_point, V, PA, current_stepper_pos):
+    def _movement_position_from_stepper_pos(self,beyond_reversal_point, V, PA, current_stepper_pos):
         PAx = PA[0]       
         PAy = PA[1]       
         PAz = PA[2]       
