@@ -80,6 +80,21 @@ class TetraKinematics:
                         es.position_endstop + math.sqrt(arm**2 - radius**2))
                        for angle, es, arm in zip(self.angles, self.steppers, arm_lengths)]
         
+        
+        logging.info(
+            "Anchor 0: X:%.2fmm Y:%.2fmm Z: %.2fmm)"
+            % self.anchors[0][0], self.anchors[0][1],
+               self.anchors[0][2])
+        logging.info(
+            "Anchor 1: X:%.2fmm Y:%.2fmm Z: %.2fmm)"
+            % self.anchors[1][0], self.anchors[1][1],
+               self.anchors[1][2])
+        logging.info(
+            "Anchor 1: X:%.2fmm Y:%.2fmm Z: %.2fmm)"
+            % self.anchors[2][0], self.anchors[2][1],
+               self.anchors[2][2])
+        
+        
         # Find the point where an XY move could result in excessive
         # stepper movement
         half_min_step_dist = min([s.step_dist for s in self.steppers]) * .5
