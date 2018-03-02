@@ -289,7 +289,7 @@ class TetraKinematics:
         # Now, go though each anchor and add required step times in order.
         for i in StepList:
             # Set up the step method
-            step = self.steppers[i].step
+            # step = self.steppers[i].step
             # Reset move time
             move_time = print_time
             # Reset move position
@@ -348,7 +348,7 @@ class TetraKinematics:
                     move_time += math.sqrt((current_pos_r-previous_pos_r)*move_d/accel)
                 
                 # Push time on stack
-                step(move_time)
+                self.steppers[i].step(move_time)
             
             # Now, repeat this for all steppers
         # All times have been pushed
