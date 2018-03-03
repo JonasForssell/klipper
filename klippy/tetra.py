@@ -295,7 +295,6 @@ class TetraKinematics:
             # Reset move position
             current_pos_r = 0
             previous_pos_r = 0
-            current_stepper_pos = 0
             
             beyond_reversal_point = False
             
@@ -312,6 +311,8 @@ class TetraKinematics:
             else:
                 stepper_step_distance = -self.steppers[i].step_dist
             
+            current_stepper_pos = stepper_start_pos
+                     
             # Calculate reversal point if the effector passes it
             # This is achieved by orthogonal projection of the anchor point onto the line of movement.
             # https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
