@@ -349,7 +349,7 @@ class TetraKinematics:
                     move_time += math.sqrt((current_pos_r-previous_pos_r)*move_d/accel)
                 
                 # Push time on stack
-                self.steppers[i].mcu_stepper.step(move_time, math.copysign(1,stepper_step_distance))
+                self.steppers[i].mcu_stepper.step(move_time, int(math.copysign(1,stepper_step_distance)))
             
             # Now, repeat this for all steppers
         # All times have been pushed
