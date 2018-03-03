@@ -400,6 +400,9 @@ class TetraKinematics:
         Vy = V[1]
         Vz = V[2]        
         
+        if (Vx**2+Vy**2+Vz**2) == 0:
+            return 0
+        
         if beyond_reversal_point:
             return (0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)**2 -4*(Vx**2+Vy**2+Vz**2)*(PAx**2+PAy**2+PAz**2 - current_stepper_pos**2)) 
                    + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx**2 + Vy**2 + Vz**2)
