@@ -327,6 +327,10 @@ class TetraKinematics:
                 # Take one step on the stepper
                 current_stepper_pos += stepper_step_distance                                             
                 
+                logging.info(
+                    "current_pos_r: %.2f move_d: %.2f"
+                    % (current_pos_r, move_d))
+                
                 # Reverse step direction if we have gone past reversal point. Note, there are only min reversal points                                             
                 if current_stepper_pos < stepper_reversal_point:
                     stepper_step_distance = -stepper_step_distance
