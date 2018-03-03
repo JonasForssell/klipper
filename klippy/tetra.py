@@ -402,8 +402,8 @@ class TetraKinematics:
         
         # Info for debuggning                 
         logging.info(
-            "Pax: %.2f Pay: %.2f Paz: %.2f Vx: %.2f Vy: %.2f Vz: %.2f"
-            % (PAx, PAy, PAz, Vx, Vy, Vz))
+            "Pax: %.2f Pay: %.2f Paz: %.2f Vx: %.2f Vy: %.2f Vz: %.2f CSp: %.2f"
+            % (PAx, PAy, PAz, Vx, Vy, Vz, current_stepper_pos))
             
         logging.info(
             "Del1: %.2f Del2: %.2f Del3: %.2f Del4: %.2f"
