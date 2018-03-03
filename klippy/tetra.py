@@ -321,15 +321,20 @@ class TetraKinematics:
             # Express this in stepper coordinates
             stepper_reversal_point = math.sqrt(matrix_magsq(matrix_sub(anchor_d, matrix_mul(axes_d, reversal_point))))
             
+            logging.info(
+                "i: %.2f"
+                % (i))
+
+            
             # Now walk along the line one step at a time and plot the time as we go along
             # Phase 1: Movement with acceleration
             while (current_pos_r < move_d):
                 # Take one step on the stepper
                 current_stepper_pos += stepper_step_distance                                             
                 
-                logging.info(
-                    "current_pos_r: %.2f move_d: %.2f"
-                    % (current_pos_r, move_d))
+                #logging.info(
+                #    "current_pos_r: %.2f move_d: %.2f"
+                #    % (current_pos_r, move_d))
                 
                 # Reverse step direction if we have gone past reversal point. Note, there are only min reversal points                                             
                 if current_stepper_pos < stepper_reversal_point:
