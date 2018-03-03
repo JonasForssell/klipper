@@ -398,8 +398,13 @@ class TetraKinematics:
         
         Vx = V[0]
         Vy = V[1]
-        Vz = V[2]        
+        Vz = V[2]
         
+        # Info for debuggning                 
+        logging.info(
+            "Pax: %.2f Pay: %.2f Paz: %.2f Vx: %.2f Vy: %.2f Vz: %.2f"
+            % (PAx, PAy, PAz, Vx, Vy, Vz))
+            
         if (Vx**2+Vy**2+Vz**2) == 0:
             return 0
         
