@@ -325,7 +325,7 @@ class TetraKinematics:
             # Phase 1: Movement with acceleration
             while (current_pos_r < move_d):
                 # Take one step on the stepper
-                current_stepper_pos += stepper_step_distance                                             
+                current_stepper_pos = current_stepper_pos + stepper_step_distance                                             
                 
                 # Reverse step direction if we have gone past reversal point. Note, there are only min reversal points                                             
                 if current_stepper_pos < stepper_reversal_point:
