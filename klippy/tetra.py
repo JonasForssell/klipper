@@ -294,8 +294,8 @@ class TetraKinematics:
         decel_d = move.decel_r * move_d
         
         logging.info(
-            "accel: %.2f cruise_v: %.2f move_d: %.2f"
-            % (accel, cruise_v, move_d))
+            "accel: %.2f cruise_v: %.2f move_d: %.2f accel_d: %.2f decel_d: %.2f"
+            % (accel, cruise_v, move_d, accel_d, decel_d))
                 
         # Now, go though each anchor and add required step times in order.
         for i in StepList:
@@ -371,6 +371,10 @@ class TetraKinematics:
                     move_time += (current_pos_r-previous_pos_r)/cruise_v                                         
                 else:                                             
                     move_time += math.sqrt((current_pos_r-previous_pos_r)*move_d/accel)
+                
+                logging.info(
+                "move_time: %.2f"
+                % (move_time)
                 
                 # Push time on stack
                 self.steppers[i].mcu_stepper.step(move_time, int(math.copysign(1,stepper_step_distance)))
