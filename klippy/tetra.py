@@ -194,7 +194,14 @@ class TetraKinematics:
         # Set final homed position
         spos = [ep + s.get_homed_offset()
                 for ep, s in zip(self.endstops, self.steppers)]
-        homing_state.set_homed_position(self._actuator_to_cartesian(spos))
+        hpos = self._actuator_to_cartesian(spos)
+        homing_state.set_homed_position(hpos)
+        
+        # Info for debuggning                 
+        logging.info(
+            "Homed at X: %.2f Y: %.2f Z: %.2f"
+            % (hpos[0], hpos[1], hpos[2]))
+        
         
     def motor_off(self, print_time):
         self.limit_xy2 = -1.
