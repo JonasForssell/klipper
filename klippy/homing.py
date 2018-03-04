@@ -13,7 +13,7 @@ class Homing:
     def __init__(self, toolhead):
         self.toolhead = toolhead
         self.changed_axes = []
-        self.verify_retract = True
+        self.verify_retract = False #Was true
     def set_no_verify_retract(self):
         self.verify_retract = False
     def set_axes(self, axes):
