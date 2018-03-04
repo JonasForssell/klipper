@@ -427,8 +427,8 @@ class TetraKinematics:
         
         # Info for debuggning                 
         logging.info(
-            "Pax: %.2f Pay: %.2f Paz: %.2f Vx: %.2f Vy: %.2f Vz: %.2f CSp: %.2f"
-            % (PAx, PAy, PAz, Vx, Vy, Vz, current_stepper_pos))
+            "Pax: %.2f Pay: %.2f Paz: %.2f Vx: %.2f Vy: %.2f Vz: %.2f CSp: %.2f BRp: %.2f"
+            % (PAx, PAy, PAz, Vx, Vy, Vz, current_stepper_pos, beyond_reversal_point))
             
         logging.info(
             "_mpfsp1: %.2f _mpfsp2: %.2f"
