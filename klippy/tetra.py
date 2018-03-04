@@ -222,8 +222,8 @@ class TetraKinematics:
             # Normal XY move
             return
         
-        if self.need_home:
-            raise homing.EndstopMoveError(end_pos, "Must home first")
+        #if self.need_home:
+        #    raise homing.EndstopMoveError(end_pos, "Must home first")
         
         limit_xy2 = self.max_xy2
         
