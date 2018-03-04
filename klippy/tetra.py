@@ -132,8 +132,8 @@ class TetraKinematics:
     
     # Derive the cartesian postion using triateration (see wikipedia)
     def _actuator_to_cartesian(self, pos):
-        s21 = matrix_sub(anchors[1], anchors[0])
-        s31 = matrix_sub(anchors[2], anchors[0])
+        s21 = matrix_sub(self.anchors[1], self.anchors[0])
+        s31 = matrix_sub(self.anchors[2], self.anchors[0])
         
         d = math.sqrt(matrix_magsq(s21))
         ex = matrix_mul(s21, 1. / d)
@@ -150,7 +150,7 @@ class TetraKinematics:
         ex_x = matrix_mul(ex, x)
         ey_y = matrix_mul(ey, y)
         ez_z = matrix_mul(ez, z)
-        return matrix_add(anchors[0], matrix_add(ex_x, matrix_add(ey_y, ez_z)))
+        return matrix_add(self.anchors[0], matrix_add(ex_x, matrix_add(ey_y, ez_z)))
         
     # Returns the current cartesian position of the nozzle
     def get_position(self):
