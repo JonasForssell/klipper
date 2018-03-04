@@ -293,6 +293,10 @@ class TetraKinematics:
         cruise_d = move.cruise_r * move_d
         decel_d = move.decel_r * move_d
         
+        logging.info(
+            "accel: %.2f cruise_v: %.2f move_d: %.2f"
+            % (accel, cruise_v, move_d))
+                
         # Now, go though each anchor and add required step times in order.
         for i in StepList:
             # Set up the step method
