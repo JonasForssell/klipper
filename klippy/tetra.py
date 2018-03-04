@@ -360,6 +360,10 @@ class TetraKinematics:
                 previous_pos_r = current_pos_r
                 current_pos_r = self._movement_position_from_stepper_pos(beyond_reversal_point, axes_d, anchor_d, current_stepper_pos)
                 
+                logging.info(
+                    "current_pos_r: %.2f "
+                    % (current_pos_r))
+                
                 # Calculate corresponding time depending on which phase we are in
                 if current_pos_r > (accel_d + cruise_d):                                             
                     move_time += math.sqrt((current_pos_r-previous_pos_r)*move_d/decel)                                         
