@@ -429,6 +429,10 @@ class TetraKinematics:
         Vy = V[1]
         Vz = V[2]
         
+        A = 0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)**2 -4*(Vx**2+Vy**2+Vz**2)*(PAx**2+PAy**2+PAz**2 - current_stepper_pos**2))
+        B = PAx*Vx + PAy*Vy + PAz*Vz
+        C = Vx**2 + Vy**2 + Vz**2
+        
         # Info for debuggning                 
         logging.info(
             "Pax: %.2f Pay: %.2f Paz: %.2f Vx: %.2f Vy: %.2f Vz: %.2f CSp: %.2f BRp: %.2f"
@@ -436,16 +440,20 @@ class TetraKinematics:
             
         logging.info(
             "_mpfsp1: %.2f _mpfsp2: %.2f"
-            % ((0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)**2 -4*(Vx**2+Vy**2+Vz**2)*(PAx**2+PAy**2+PAz**2 - current_stepper_pos**2)) 
-                   + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx**2 + Vy**2 + Vz**2), (-0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)**2 -4*(Vx**2+Vy**2+Vz**2)*(PAx**2+PAy**2+PAz**2 - current_stepper_pos**2)) 
-                   + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx**2 + Vy**2 + Vz**2)))
+            % ((A+B)/C, (-A+B)/C))
+        
+        V1 = (-A+B)/C
+        V2 = (A+B)/C
+        
+        If math.abs(V1) > math.abs(V2)
+            tmp = V2
+            V2 = V1
+            V1 = tmp
         
         if beyond_reversal_point:
-            return (-0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)**2 -4*(Vx**2+Vy**2+Vz**2)*(PAx**2+PAy**2+PAz**2 - current_stepper_pos**2)) 
-                   + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx**2 + Vy**2 + Vz**2)
+            return V2
         else:
-            return (0.5*math.sqrt( (-2*PAx*Vx - 2*PAy*Vy - 2*PAz*Vz)**2 -4*(Vx**2+Vy**2+Vz**2)*(PAx**2+PAy**2+PAz**2 - current_stepper_pos**2)) 
-                   + PAx*Vx + PAy*Vy + PAz*Vz ) / (Vx**2 + Vy**2 + Vz**2)
+            return V1
     
         
     
