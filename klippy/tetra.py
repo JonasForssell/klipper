@@ -445,7 +445,7 @@ class TetraKinematics:
         V1 = (-A+B)/C
         V2 = (A+B)/C
         
-        If math.fabs(V1) > math.fabs(V2)
+        if math.fabs(V1) > math.fabs(V2)
             tmp = V2
             V2 = V1
             V1 = tmp
