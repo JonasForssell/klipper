@@ -374,7 +374,7 @@ class TetraKinematics:
                 
                 logging.info(
                 "move_time: %.2f"
-                % (move_time)
+                % (move_time))
                 
                 # Push time on stack
                 self.steppers[i].mcu_stepper.step(move_time, int(math.copysign(1,stepper_step_distance)))
